@@ -123,7 +123,7 @@ function ProviderIcon({
   );
 }
 
-const TEST_LANGS = { source: 'en', target: 'zh' } as const;
+const TEST_LANGS = { source: 'en', target: 'vi' } as const;
 
 type TestResult = {
   providerId: string;

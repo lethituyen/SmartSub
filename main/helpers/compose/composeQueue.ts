@@ -53,7 +53,6 @@ interface InternalJob {
   cancelRunning?: () => void;
   /** 可选的作业级进度回调（流水线阶段等提交方直连消费） */
   onProgress?: (progress: MergeProgress) => void;
-  beforePublish?: () => Promise<void>;
   settle: (result: ComposeJobResult) => void;
   done: Promise<ComposeJobResult>;
 }
@@ -140,11 +139,7 @@ function broadcastQueue(): void {
 export function enqueueCompose(
   config: ComposeConfig,
   source: ComposeJobSource,
-  opts?: {
-    requestId?: string;
-    onProgress?: (progress: MergeProgress) => void;
-    beforePublish?: () => Promise<void>;
-  },
+  opts?: { requestId?: string; onProgress?: (progress: MergeProgress) => void },
 ): { jobId: string; done: Promise<ComposeJobResult> } {
   // WebM/Ogg 写不下 H.264/AAC：入口同步拒绝，不排队、不进历史、不建暂存目录（#521）
   assertComposeOutputWritable(config.outputPath);
@@ -176,7 +171,6 @@ export function enqueueCompose(
     status: 'queued',
     createdAt: Date.now(),
     onProgress: opts?.onProgress,
-    beforePublish: opts?.beforePublish,
     settle,
     done,
   };
@@ -266,7 +260,6 @@ async function pump(): Promise<void> {
       acquireTaskPowerSaveBlocker(COMPOSE_POWER_SAVE_REASON);
       try {
         const outputPath = await runComposeJob(next.config, {
-          beforePublish: next.beforePublish,
           jobId: next.id,
           onProgress: (progress) => {
             const withSource = { ...progress, source: next.source };

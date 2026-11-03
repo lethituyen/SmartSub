@@ -11,6 +11,9 @@ import SubtitleSyncPanel from '@/components/toolbox/subtitleSync/SubtitleSyncPan
 import BilingualSubtitlePanel from '@/components/toolbox/bilingualSubtitles/BilingualSubtitlePanel';
 import VideoCompressorPanel from '@/components/toolbox/videoCompressor/VideoCompressorPanel';
 import VideoToGifPanel from '@/components/toolbox/videoToGif/VideoToGifPanel';
+import VideoOcrSubtitlesPanel from '@/components/toolbox/videoOcrSubtitles/VideoOcrSubtitlesPanel';
+import VideoRemakerPanel from '@/components/toolbox/videoRemaker/VideoRemakerPanel';
+import ShortDramaDownloaderPanel from '@/components/toolbox/shortDrama/ShortDramaDownloaderPanel';
 import type { ToolboxToolId } from '../../../types/toolbox';
 
 export default function ToolboxPage() {
@@ -59,6 +62,12 @@ export default function ToolboxPage() {
         return <VideoCompressorPanel />;
       case 'video-to-gif':
         return <VideoToGifPanel />;
+      case 'video-ocr-subtitles':
+        return <VideoOcrSubtitlesPanel />;
+      case 'video-remaker':
+        return <VideoRemakerPanel />;
+      case 'video-downloader':
+        return <ShortDramaDownloaderPanel />;
       default:
         return <ToolboxDashboard onSelectTool={handleSelectTool} />;
     }

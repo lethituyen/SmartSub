@@ -9,7 +9,6 @@ import { logMessage, store } from '../storeManager';
 import {
   TaskCancelledError,
   getTaskSignal,
-  getTaskContext,
   throwIfTaskCancelled,
 } from '../taskContext';
 import { enqueueCompose, cancelComposeJob } from '../compose/composeQueue';
@@ -81,7 +80,6 @@ export async function runComposeStage(
 
     signal?.addEventListener('abort', onAbort, { once: true });
     const job = enqueueCompose(derived.config, 'pipeline', {
-      beforePublish: getTaskContext()?.verifyInput,
       onProgress: (progress) => {
         if (progress.status === 'processing') {
           event.sender.send(

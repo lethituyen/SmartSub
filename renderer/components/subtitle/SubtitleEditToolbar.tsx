@@ -41,10 +41,14 @@ import {
   PanelLeftOpen,
   SlidersHorizontal,
   X,
+  Sparkles,
+  PenTool,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Subtitle } from '../../hooks/useSubtitles';
+import AutoMergeShortDialog from './AutoMergeShortDialog';
+import ChineseHandwritingPad from './ChineseHandwritingPad';
 
 /** 出现次数统计（支持大小写不敏感） */
 const countOccurrences = (
@@ -190,6 +194,8 @@ export default function SubtitleEditToolbar({
 
   // 合并状态
   const [showMerge, setShowMerge] = useState(false);
+  const [showAutoMerge, setShowAutoMerge] = useState(false);
+  const [showHandwriting, setShowHandwriting] = useState(false);
   const [mergeStart, setMergeStart] = useState(currentSubtitleIndex);
   const [mergeEnd, setMergeEnd] = useState(currentSubtitleIndex + 1);
 
@@ -445,6 +451,46 @@ export default function SubtitleEditToolbar({
     }
   }, [triggerSplit, currentSubtitleIndex, handleOpenSplit, onTriggerHandled]);
 
+  // Chèn chữ Hán viết tay vào câu sub đang chọn
+  const handleInsertHandwritingCharacter = useCallback(
+    (char: string) => {
+      if (
+        currentSubtitleIndex >= 0 &&
+        currentSubtitleIndex < subtitles.length
+      ) {
+        const cur = subtitles[currentSubtitleIndex];
+        const el = document.getElementById(
+          `subtitle-src-${currentSubtitleIndex}`,
+        ) as HTMLTextAreaElement | null;
+        let newContent = cur.sourceContent || '';
+        if (el && typeof el.selectionStart === 'number') {
+          const start = el.selectionStart;
+          const end = el.selectionEnd;
+          newContent =
+            newContent.slice(0, start) + char + newContent.slice(end);
+          setTimeout(() => {
+            el.focus();
+            el.setSelectionRange(start + char.length, start + char.length);
+          }, 50);
+        } else {
+          newContent += char;
+        }
+
+        const updated = subtitles.map((sub, idx) =>
+          idx === currentSubtitleIndex
+            ? {
+                ...sub,
+                sourceContent: newContent,
+                content: newContent.split('\n'),
+              }
+            : sub,
+        );
+        onSubtitlesChange(updated);
+      }
+    },
+    [currentSubtitleIndex, subtitles, onSubtitlesChange],
+  );
+
   return (
     <div
       className="flex flex-wrap items-center gap-1 border-b bg-muted/20 px-3 py-2"
@@ -651,7 +697,30 @@ export default function SubtitleEditToolbar({
         </PopoverContent>
       </Popover>
 
-      {/* 合并字幕 */}
+      {/* 快捷一键合并下一条 (X) */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8"
+        onClick={() => {
+          if (
+            currentSubtitleIndex >= 0 &&
+            currentSubtitleIndex < subtitles.length - 1
+          ) {
+            onMergeSubtitles(currentSubtitleIndex, currentSubtitleIndex + 2);
+          }
+        }}
+        disabled={
+          currentSubtitleIndex < 0 ||
+          currentSubtitleIndex >= subtitles.length - 1
+        }
+        title={t('mergeNextHint')}
+      >
+        <Combine className="h-4 w-4 mr-1" />
+        {t('mergeNext')}
+      </Button>
+
+      {/* 区间合并字幕对话框 */}
       <Dialog open={showMerge} onOpenChange={setShowMerge}>
         <Button
           variant="ghost"
@@ -664,8 +733,7 @@ export default function SubtitleEditToolbar({
           }}
           title={t('mergeSubtitles')}
         >
-          <Combine className="h-4 w-4 mr-1" />
-          {t('merge')}
+          {t('merge')}...
         </Button>
         <DialogContent>
           <DialogHeader>
@@ -722,6 +790,59 @@ export default function SubtitleEditToolbar({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Tự động gộp câu ngắn thông minh (Dubbing/Translation ready) */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-500/10"
+        onClick={() => setShowAutoMerge(true)}
+        title={t('autoMergeShortTitle') || 'Tự động gộp câu ngắn'}
+        disabled={subtitles.length < 2}
+      >
+        <Sparkles className="h-4 w-4" />
+        {t('autoMergeShort') || 'Gộp câu ngắn...'}
+      </Button>
+
+      {/* Auto Merge Dialog */}
+      <AutoMergeShortDialog
+        open={showAutoMerge}
+        onOpenChange={setShowAutoMerge}
+        subtitles={subtitles}
+        onApplyMerge={(merged) => {
+          onSubtitlesChange(merged);
+        }}
+      />
+
+      {/* Công cụ vẽ tay chữ Hán (Cửa sổ nổi kéo thả tự do) */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowHandwriting((prev) => !prev)}
+        className={`h-8 gap-1.5 ${
+          showHandwriting
+            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-medium shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+        title={t('chineseHandwritingTitle') || 'Vẽ tay tìm chữ Hán'}
+      >
+        <PenTool className="h-4 w-4 text-amber-500" />
+        <span className="hidden sm:inline">
+          {t('chineseHandwriting') || 'Vẽ chữ Hán'}
+        </span>
+      </Button>
+
+      {showHandwriting && (
+        <ChineseHandwritingPad
+          onClose={() => setShowHandwriting(false)}
+          targetContext={
+            currentSubtitleIndex >= 0
+              ? `Câu #${currentSubtitleIndex + 1}`
+              : undefined
+          }
+          onSelectCharacter={handleInsertHandwritingCharacter}
+        />
+      )}
 
       {/* 拆分字幕 */}
       <Dialog open={showSplit} onOpenChange={setShowSplit}>

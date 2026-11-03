@@ -6311,6 +6311,11 @@ jest@^29.7.0:
     import-local "^3.0.2"
     jest-cli "^29.7.0"
 
+jianying-subtitle@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.npmmirror.com/jianying-subtitle/-/jianying-subtitle-0.2.3.tgz#3a4993bcf6c6b1fdb6d4ff8a69cf10993ef7f288"
+  integrity sha512-tudl5JDKQst6bb+YprvthVyMPCHjAd44t0IIdlc911mOp+Oy4P8tuEJZvinOHBstjWeULeNbpvtsB4Upy84CFA==
+
 jiti@^1.21.6:
   version "1.21.7"
   resolved "https://registry.npmmirror.com/jiti/-/jiti-1.21.7.tgz"

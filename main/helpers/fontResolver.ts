@@ -162,7 +162,7 @@ const aliases = new Map<string, string>();
 const installedFamilies = new Map<string, Set<string>>();
 const catalog = new Map<string, { stamp: string; faces: FontFaceInfo[] }>();
 const MAX_SCANNED_FONT_FILES = 20000;
-const SAMPLE_TEXT = 'SmartSub 字幕示例 123';
+const SAMPLE_TEXT = 'SmartSub Phụ đề Tiếng Việt 123';
 const yieldToApp = () => new Promise<void>((resolve) => setImmediate(resolve));
 let discovery: Promise<void> | undefined;
 let cachedBytes = 0;
@@ -247,29 +247,29 @@ async function discoverInstalledFonts() {
   const roots =
     process.platform === 'darwin'
       ? [
-          '/System/Library/Fonts',
-          '/Library/Fonts',
-          path.join(os.homedir(), 'Library/Fonts'),
-        ]
+        '/System/Library/Fonts',
+        '/Library/Fonts',
+        path.join(os.homedir(), 'Library/Fonts'),
+      ]
       : process.platform === 'win32'
         ? [
-            path.join(process.env.WINDIR || 'C:\\Windows', 'Fonts'),
-            path.join(
-              process.env.LOCALAPPDATA ||
-                path.join(os.homedir(), 'AppData/Local'),
-              'Microsoft/Windows/Fonts',
-            ),
-          ]
+          path.join(process.env.WINDIR || 'C:\\Windows', 'Fonts'),
+          path.join(
+            process.env.LOCALAPPDATA ||
+            path.join(os.homedir(), 'AppData/Local'),
+            'Microsoft/Windows/Fonts',
+          ),
+        ]
         : [
-            '/usr/share/fonts',
-            '/usr/local/share/fonts',
-            path.join(os.homedir(), '.fonts'),
-            path.join(
-              process.env.XDG_DATA_HOME ||
-                path.join(os.homedir(), '.local/share'),
-              'fonts',
-            ),
-          ];
+          '/usr/share/fonts',
+          '/usr/local/share/fonts',
+          path.join(os.homedir(), '.fonts'),
+          path.join(
+            process.env.XDG_DATA_HOME ||
+            path.join(os.homedir(), '.local/share'),
+            'fonts',
+          ),
+        ];
   let count = 0;
   const next = new Map<string, { stamp: string; faces: FontFaceInfo[] }>();
   const visit = async (directory: string, depth: number) => {
@@ -389,8 +389,8 @@ function resolveFace(
     const faces = exact.length
       ? exact
       : allFaces.filter((face) =>
-          faceNames(face).some((name) => normalize(name) === key),
-        );
+        faceNames(face).some((name) => normalize(name) === key),
+      );
     const face =
       faces.find((face) =>
         /^(regular|normal|book|roman)$/i.test(face.subfamilyName),
@@ -417,19 +417,19 @@ export function resolveSharedFont(
   const fallbackNames = /courier|mono/i.test(fontName)
     ? ['Courier New', 'DejaVu Sans Mono', 'Liberation Mono']
     : /arial|helvetica|georgia|times|verdana|roboto|impact|tahoma|sans|serif/i.test(
-          fontName,
-        ) && !/cjk|hiragino|noto|han/i.test(fontName)
+      fontName,
+    ) && !/cjk|hiragino|noto|han/i.test(fontName)
       ? ['Arial', 'DejaVu Sans', 'Liberation Sans']
       : [
-          'Arial Unicode MS',
-          'Heiti SC',
-          'Microsoft YaHei',
-          'Noto Sans CJK SC',
-          'Noto Sans SC',
-          'Arial',
-          'DejaVu Sans',
-          'Liberation Sans',
-        ];
+        'Arial Unicode MS',
+        'Heiti SC',
+        'Microsoft YaHei',
+        'Noto Sans CJK SC',
+        'Noto Sans SC',
+        'Arial',
+        'DejaVu Sans',
+        'Liberation Sans',
+      ];
   for (const name of fallbackNames) {
     const font = resolveFace(name, context);
     if (font) return font;
@@ -495,13 +495,13 @@ export function loadFontData(
         ...(path.extname(resolved.filePath).toLowerCase() === '.ttc'
           ? []
           : fs
-              .readdirSync(path.dirname(resolved.filePath))
-              .filter(
-                (file) =>
-                  /\.(ttf|otf)$/i.test(file) &&
-                  path.basename(file, path.extname(file)).startsWith(basename),
-              )
-              .map((file) => path.join(path.dirname(resolved.filePath), file))),
+            .readdirSync(path.dirname(resolved.filePath))
+            .filter(
+              (file) =>
+                /\.(ttf|otf)$/i.test(file) &&
+                path.basename(file, path.extname(file)).startsWith(basename),
+            )
+            .map((file) => path.join(path.dirname(resolved.filePath), file))),
       ]),
     ).filter((file) => {
       if (file === resolved.filePath) return false;
@@ -733,10 +733,10 @@ export async function recommendFontsForText(
     .sort(
       (a, b) =>
         Number(context.some((font) => font.fontName === b)) -
-          Number(context.some((font) => font.fontName === a)) ||
+        Number(context.some((font) => font.fontName === a)) ||
         rankOf(a) - rankOf(b) ||
         Number(LIKELY_COVERAGE_NAME.test(b)) -
-          Number(LIKELY_COVERAGE_NAME.test(a)) ||
+        Number(LIKELY_COVERAGE_NAME.test(a)) ||
         a.localeCompare(b),
     );
   const deadline = Date.now() + budgetMs;
@@ -894,10 +894,10 @@ export async function listSubtitleFonts(context: FontContext = []) {
       available: Boolean(font),
       ...(!font
         ? {
-            reason: resolveFontFilePath(name)
-              ? ('unsupported' as const)
-              : ('missing' as const),
-          }
+          reason: resolveFontFilePath(name)
+            ? ('unsupported' as const)
+            : ('missing' as const),
+        }
         : {}),
     });
     if (options.length % 32 === 0) await yieldToApp();

@@ -63,7 +63,7 @@ export async function loadTtsEngineOptions(): Promise<DubbingEngineOption[]> {
   try {
     const status = await window.ipc.invoke('getTtsModelStatus');
     for (const m of status?.models ?? []) {
-      const voices = m.cloneOnly
+      let voices = m.cloneOnly
         ? clonedVoices
             .filter((v) => v.engine === 'zipvoice')
             .map((v) => ({ id: v.id, label: v.name, lang: v.language }))
@@ -72,11 +72,24 @@ export async function loadTtsEngineOptions(): Promise<DubbingEngineOption[]> {
             label: v.label,
             ...normalizeTtsVoiceMetadata(v),
           }));
+      if (m.id === 'vieneu-vietnamese') {
+        const viClones = clonedVoices
+          .filter((v) => v.engine === 'vieneu')
+          .map((v) => ({
+            id: v.id,
+            label: `[Clone] ${v.name}`,
+            lang: 'vi' as const,
+          }));
+        voices = [...viClones, ...voices];
+      }
       opts.push({
         key: `local:${m.id}`,
         kind: 'local',
         label: m.displayName ?? m.id,
-        ready: status.engineInstalled === true && m.installed === true,
+        ready:
+          (m.engineInstalled !== undefined
+            ? m.engineInstalled
+            : status.engineInstalled) === true && m.installed === true,
         cloneOnly: !!m.cloneOnly,
         voices,
         defaultVoiceId: m.cloneOnly ? voices[0]?.id : m.defaultVoiceId,

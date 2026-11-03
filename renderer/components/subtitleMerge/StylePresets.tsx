@@ -45,7 +45,7 @@ interface StylePresetsProps {
 /** 卡片内样例字相对完整样式的缩放系数（把 22-28px 字号缩到卡片可容纳的大小） */
 const CHIP_SCALE = 0.55;
 
-const SAMPLE_TEXT = 'SmartSub\n字幕 Aa';
+const SAMPLE_TEXT = 'SmartSub\nPhụ đề Aa';
 
 /** 所见即所得预设卡片（系统/用户共用视觉）；额外角标/删除钮经 overlay 注入 */
 function PresetCard({

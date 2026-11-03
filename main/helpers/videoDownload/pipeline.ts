@@ -57,7 +57,7 @@ export function resolveDownloadPipeline(
       customTargetSrtFileName:
         config.customTargetSrtFileName || '${fileName}.${targetLanguage}',
       sourceLanguage: config.sourceLanguage || 'auto',
-      targetLanguage: config.targetLanguage || 'zh',
+      targetLanguage: config.targetLanguage || 'vi',
       translateRetryTimes: String(config.translateRetryTimes ?? '3'),
       transcriptionEngine: config.transcriptionEngine || 'builtin',
       taskType: recipe.goals.translate

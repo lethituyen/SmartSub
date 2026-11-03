@@ -12,7 +12,10 @@ export type ToolboxToolId =
   | 'subtitle-sync'
   | 'bilingual-subtitles'
   | 'video-compressor'
-  | 'video-to-gif';
+  | 'video-to-gif'
+  | 'video-ocr-subtitles'
+  | 'video-remaker'
+  | 'video-downloader';
 
 export interface ToolboxToolManifest {
   id: ToolboxToolId;
@@ -224,3 +227,93 @@ export interface VideoToGifResult {
   size: number;
   error?: string;
 }
+
+// ----------------- 视频硬字幕 OCR 提取 (PP-OCRv6) -----------------
+
+export interface VideoOcrRoi {
+  ymin: number; // 0.0 - 1.0 (e.g. 0.78)
+  ymax: number; // 0.0 - 1.0 (e.g. 0.98)
+  xmin: number; // 0.0 - 1.0 (e.g. 0.05)
+  xmax: number; // 0.0 - 1.0 (e.g. 0.95)
+}
+
+export interface VideoOcrSubtitlesConfig {
+  videoPath: string;
+  outputPath?: string;
+  roi?: VideoOcrRoi;
+  sampleFps?: number; // 1.0 - 5.0, default 2.5
+  minScore?: number; // 0.3 - 0.9, default 0.60
+  simThreshold?: number; // 0.6 - 0.95, default 0.85
+  forceCpu?: boolean;
+  gpuId?: number; // -1 = CPU, 0 = GPU 0, 1 = GPU 1 (Vulkan acceleration)
+}
+
+export interface VideoOcrSubtitlesProgress {
+  percent: number;
+  currentTime?: number;
+  duration?: number;
+  timemark?: string;
+  currentText?: string;
+  cuesCount?: number;
+}
+
+export interface VideoOcrSubtitlesResult {
+  success: boolean;
+  outputPath: string;
+  subtitlesCount: number;
+  duration: number;
+  error?: string;
+}
+
+export interface VideoOcrPreviewResult {
+  success: boolean;
+  time: number;
+  width: number;
+  height: number;
+  dataUri: string;
+  roiPixels: [number, number, number, number];
+  detectedTexts?: Array<{ text: string; score: number }>;
+  error?: string;
+}
+
+// ----------------- 视频重制 / 去重防查重 (Video Remaker) -----------------
+
+export type VideoRemakePreset = 'safe' | 'balanced' | 'aggressive' | 'custom';
+
+export interface VideoRemakeConfig {
+  videoPath: string;
+  preset?: VideoRemakePreset;
+  /** 微裁剪与缩放比例 (0 - 8%, 默认 2) */
+  microZoomPercent?: number;
+  /** 水平镜像翻转 (默认 false) */
+  mirrorFlip?: boolean;
+  /** 动态微噪点 (随机微噪, 默认 true) */
+  microNoise?: boolean;
+  /** 噪点强度 (1 - 5, 默认 2) */
+  microNoiseStrength?: number;
+  /** 微调色彩/对比度/伽马 (默认 true) */
+  colorShift?: boolean;
+  /** 暗角微晕影 (默认 false) */
+  vignette?: boolean;
+  /** 播放微变速倍率 (0.95 - 1.05, 默认 1.02) */
+  speedMultiplier?: number;
+  /** 音频微调音高 (默认 true) */
+  pitchShift?: boolean;
+  /** 音高半音偏移 (-1 到 +1, 默认 0.3) */
+  pitchSemitones?: number;
+  /** 随机打乱 GOP / Keyframe 间距 (默认 true) */
+  randomGop?: boolean;
+  /** 清除所有 Exif / Metadata 元数据 (默认 true) */
+  clearMetadata?: boolean;
+  outputPath?: string;
+  outputDir?: string;
+}
+
+export interface VideoRemakeResult {
+  success: boolean;
+  outputPath: string;
+  originalSize: number;
+  newSize: number;
+  error?: string;
+}
+

@@ -22,7 +22,8 @@ export type LogQuery = {
 };
 
 function getLogsDir(): string {
-  return path.join(app.getPath('userData'), 'logs');
+  const userData = app?.getPath ? app.getPath('userData') : path.join(process.cwd(), '.logs');
+  return path.join(userData, 'logs');
 }
 
 /** 本地时区的 YYYY-MM-DD */

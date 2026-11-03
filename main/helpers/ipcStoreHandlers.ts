@@ -1,4 +1,3 @@
-import { getRunStore } from './taskRuns/runtime';
 import { ipcMain } from '../automation/handlers';
 import { app } from 'electron';
 import os from 'os';
@@ -103,6 +102,19 @@ export function setupStoreHandlers() {
       'Normalized legacy default modelsPath; ggml models now follow storageRoot/default chain',
       'info',
     );
+  }
+
+  // 目标语言出厂默认迁移：从 zh 迁移为 vi（越南语）
+  const currentUserConfig = store.get('userConfig');
+  if (
+    currentUserConfig &&
+    (currentUserConfig.targetLanguage === 'zh' || !currentUserConfig.targetLanguage)
+  ) {
+    store.set('userConfig', {
+      ...currentUserConfig,
+      targetLanguage: 'vi',
+    });
+    logMessage('Migrated default targetLanguage from zh to vi', 'info');
   }
 
   // 启动时初始化服务商配置
@@ -328,8 +340,6 @@ export function setupStoreHandlers() {
         sanitized.selectedCudaDevice,
       );
     }
-    // Remember the old root before settings switch the new-run destination.
-    getRunStore().roots();
     const nextSettings = { ...preSettings, ...sanitized };
     store.set('settings', nextSettings);
     if (

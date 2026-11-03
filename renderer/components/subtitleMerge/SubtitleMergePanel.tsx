@@ -87,6 +87,9 @@ export default function SubtitleMergePanel({
     style,
     activePresetId,
     userPresets,
+    blurOldSubtitles,
+    watermark,
+    antiDuplicate,
 
     // 输出状态
     outputPath,
@@ -112,6 +115,9 @@ export default function SubtitleMergePanel({
 
     // 样式操作方法
     updateStyle,
+    updateBlurOldSubtitles,
+    updateWatermark,
+    updateAntiDuplicate,
     applyPreset,
     saveStylePreset,
     deleteStylePreset,
@@ -438,6 +444,12 @@ export default function SubtitleMergePanel({
                 <EffectStyleSettings
                   style={style}
                   onUpdateStyle={updateStyle}
+                  blurOldSubtitles={blurOldSubtitles}
+                  onUpdateBlurOldSubtitles={updateBlurOldSubtitles}
+                  watermark={watermark}
+                  onUpdateWatermark={updateWatermark}
+                  antiDuplicate={antiDuplicate}
+                  onUpdateAntiDuplicate={updateAntiDuplicate}
                   disabled={styleDisabled}
                 />
               </div>
@@ -482,6 +494,14 @@ export default function SubtitleMergePanel({
                   videoInfo={videoInfo}
                   style={style}
                   subtitlePath={subtitlePath}
+                  blurOldSubtitles={blurOldSubtitles}
+                  onUpdateBlurOldSubtitles={
+                    documentBlocked ? undefined : updateBlurOldSubtitles
+                  }
+                  watermark={watermark}
+                  onUpdateWatermark={
+                    documentBlocked ? undefined : updateWatermark
+                  }
                   onUpdateStyle={documentBlocked ? undefined : updateStyle}
                   softMux={isSoftMux}
                   progress={progress}

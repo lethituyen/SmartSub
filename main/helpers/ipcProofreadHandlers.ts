@@ -689,7 +689,7 @@ export function setupProofreadHandlers(): void {
         const sourceLanguage =
           requestedSourceLanguage || userConfig.sourceLanguage || 'en';
         const targetLanguage =
-          requestedTargetLanguage || userConfig.targetLanguage || 'zh';
+          requestedTargetLanguage || userConfig.targetLanguage || 'vi';
         const ids = proofreadDataFile
           ? await readSidecarGlossaryIds(proofreadDataFile)
           : undefined;
@@ -942,7 +942,7 @@ Only respond with the translation, nothing else.`;
         const sourceLanguage =
           requestedSourceLanguage || userConfig.sourceLanguage || 'en';
         const targetLanguage =
-          requestedTargetLanguage || userConfig.targetLanguage || 'zh';
+          requestedTargetLanguage || userConfig.targetLanguage || 'vi';
         const ids = proofreadDataFile
           ? await readSidecarGlossaryIds(proofreadDataFile)
           : undefined;
@@ -1118,7 +1118,7 @@ Only respond with the translation, nothing else.`;
         const fallbackProviders = resolveProviderFallbacks(providers, provider);
 
         const from = sourceLanguage || userConfig.sourceLanguage || 'en';
-        const to = targetLanguage || userConfig.targetLanguage || 'zh';
+        const to = targetLanguage || userConfig.targetLanguage || 'vi';
         const ids = proofreadDataFile
           ? await readSidecarGlossaryIds(proofreadDataFile)
           : undefined;

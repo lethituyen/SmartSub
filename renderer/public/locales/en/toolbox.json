@@ -47,7 +47,10 @@
   "badges": {
     "popular": "Popular",
     "lossless": "Lossless",
-    "new": "New"
+    "new": "New",
+    "aiOcr": "AI OCR",
+    "antiDuplicate": "Anti-Duplicate",
+    "fastDownload": "Fast Download"
   },
   "tools": {
     "subtitle-converter": {
@@ -66,6 +69,10 @@
       "name": "Embedded Subtitle Extractor",
       "desc": "Quickly inspect MKV/MP4 embedded text subtitle tracks and extract selected streams to separate files"
     },
+    "video-ocr-subtitles": {
+      "name": "Hardcoded Subtitle OCR (PP-OCRv6)",
+      "desc": "Extract hardcoded subtitles from silent videos, music clips, or B-rolls using Baidu PP-OCRv6 with ONNX Runtime to standard SRT"
+    },
     "subtitle-sync": {
       "name": "Subtitle Time Shifter & Sync",
       "desc": "Shift timecodes globally, stretch/compress by frame rate ratio, or calibrate via two-point linear interpolation"
@@ -81,6 +88,14 @@
     "video-to-gif": {
       "name": "Video to High-Quality GIF",
       "desc": "Clip video segments into crisp, noise-free GIFs using two-pass palette generation"
+    },
+    "video-remaker": {
+      "name": "Anti-Duplicate Video Remaker",
+      "desc": "Generate unique video fingerprints via dynamic micro-noise, GOP randomization, spatial & temporal subtle mutations, and metadata stripping"
+    },
+    "video-downloader": {
+      "name": "Short Drama & Video Downloader (Hongguo / Douyin / Web)",
+      "desc": "Batch download complete short drama series, pure-JS CENC-AES-CTR auto-decryption, 1-click lossless FFmpeg merge, with direct subtitling & dubbing workflow"
     }
   },
   "subtitleConverter": {
@@ -105,7 +120,25 @@
     "statusDone": "Done",
     "statusError": "Failed",
     "fileCount": "{{count}} files",
-    "previewTitle": "Content Preview (First 5 Cues)"
+    "previewTitle": "Content Preview (First 5 Cues)",
+    "settingsTitle": "Conversion Settings",
+    "dropSubtitles": "Supports SRT, VTT, ASS, SSA, LRC, TXT and auto fixes ANSI/GBK encoding",
+    "noFiles": "No subtitle files to convert",
+    "formatSrt": "SRT (SubRip - Universal Standard)",
+    "formatVtt": "VTT (WebVTT - Web Streaming)",
+    "formatAss": "ASS (Advanced Styled Subtitles)",
+    "formatLrc": "LRC (Lyrics Format)",
+    "formatTxt": "TXT (Plain Text)",
+    "encodingUtf8": "UTF-8 (Standard Recommended)",
+    "encodingUtf8Bom": "UTF-8 with BOM (Legacy player compatibility)",
+    "encodingGb18030": "GB18030 / ANSI (Windows Legacy)",
+    "cleanFormattingDesc": "Strip ASS styles and HTML font color tags",
+    "keepTimestamp": "Keep Timestamps",
+    "keepTimestampDesc": "Keep start/end timestamps for each line in plain text",
+    "detectedFormat": "Detected format: ",
+    "detectedCharset": "Detected encoding: ",
+    "noCues": "No subtitle content",
+    "close": "Close"
   },
   "videoTrimmer": {
     "inPoint": "In Point (Start)",
@@ -125,7 +158,24 @@
     "pausePreview": "Pause Preview",
     "resetRange": "Reset to Full Video",
     "setAsIn": "Set as In",
-    "setAsOut": "Set as Out"
+    "setAsOut": "Set as Out",
+    "settingsTitle": "Trim Settings",
+    "dropVideo": "Click or drag video file here",
+    "supportedFormats": "Supports MP4, MKV, MOV, WebM, AVI, TS and other formats",
+    "setAsInTip": "Set current play position as In point (Shortcut [)",
+    "setAsOutTip": "Set current play position as Out point (Shortcut ])",
+    "timeInputTip": "Directly input seconds or mm:ss format (e.g. 12.5 or 01:23.4)",
+    "stepBack1s": "Step back 1s",
+    "stepBack01s": "Step back 0.1s",
+    "stepForward01s": "Step forward 0.1s",
+    "stepForward1s": "Step forward 1s",
+    "startEndSeconds": "Start/End Seconds (Precise)",
+    "startSecond": "Start (s)",
+    "endSecond": "End (s)",
+    "inPointSet": "In point set to {{time}}",
+    "outPointSet": "Out point set to {{time}}",
+    "dragInHandle": "Drag to adjust trim start (In point)",
+    "dragOutHandle": "Drag to adjust trim end (Out point)"
   },
   "audioExtractor": {
     "format": "Target Audio Format",
@@ -134,7 +184,24 @@
     "presetAsr": "16kHz Mono WAV (ASR Standard Speech Format)",
     "presetStandard": "Original Sample Rate Stereo",
     "startExtract": "Extract Audio",
-    "batchTip": "Supports batch extraction from multiple videos"
+    "batchTip": "Supports batch extraction from multiple videos",
+    "optionsTitle": "Audio Options",
+    "dropAudio": "Drag video file here or click to browse",
+    "dropAudioDesc": "Batch extract audio tracks from multiple videos in seconds",
+    "pendingVideos": "Pending videos: {{count}}",
+    "noPendingVideos": "No pending videos",
+    "clearList": "Clear list",
+    "formatMp3": "MP3 (Universal Compatibility)",
+    "formatWav": "WAV (Lossless / ASR)",
+    "formatAac": "AAC (High Quality Streaming)",
+    "formatM4a": "M4A (Apple Ecosystem)",
+    "formatFlac": "FLAC (Hi-Res Lossless)",
+    "bitrate320": "320 kbps (Highest Quality)",
+    "bitrate256": "256 kbps (High Quality)",
+    "bitrate192": "192 kbps (Standard Music)",
+    "bitrate128": "128 kbps (Voice Optimized)",
+    "wavSpec": "WAV Audio Specification",
+    "extracting": "Extracting..."
   },
   "embeddedSubtitles": {
     "scanning": "Scanning embedded subtitle streams...",
@@ -146,7 +213,19 @@
     "titleHeader": "Title",
     "exportSelected": "Export Selected Tracks",
     "selectAll": "Select All",
-    "deselectAll": "Deselect All"
+    "deselectAll": "Deselect All",
+    "optionsTitle": "Extraction Options",
+    "exportFormat": "Export Subtitle Format",
+    "dropVideo": "Click or drag MKV/MP4 video here to scan",
+    "scanDesc": "Scan embedded SubRip, ASS, WebVTT, mov_text text tracks inside container",
+    "foundStreams": "Found {{count}} subtitle stream(s)",
+    "selectVideoFirst": "Please select a video file first",
+    "trackNumber": "Track #{{number}}",
+    "graphicSubtitle": "Graphic subtitle (cannot export as text)",
+    "formatSrt": "SRT (SubRip Standard)",
+    "formatAss": "ASS (Advanced Style)",
+    "formatVtt": "VTT (WebVTT Format)",
+    "extracting": "Extracting..."
   },
   "subtitleSync": {
     "mode": "Sync Mode",
@@ -160,7 +239,15 @@
     "p2Source": "Last line current time (ms or 00:00:00,000)",
     "p2Target": "Last line target time (ms or 00:00:00,000)",
     "startSync": "Apply & Export",
-    "syncSuccess": "Synchronization completed, updated {{count}} subtitle cues"
+    "syncSuccess": "Synchronization completed, updated {{count}} subtitle cues",
+    "dropSubtitle": "Click or drag subtitle file to calibrate here",
+    "supportedFormats": "Supports SRT, VTT, ASS; fixes offset, delay or frame rate drift",
+    "quickAdjust": "Quick Adjust:",
+    "resetZero": "Reset",
+    "scaleRatio": "Timeline Scale Ratio",
+    "fpsPresets": "Common Frame Rate Presets:",
+    "twoPointDesc": "Enter current and target timestamps for the first and last subtitle cues. The algorithm applies linear resampling to fix progressive drift.",
+    "processing": "Calibrating..."
   },
   "bilingualSubtitles": {
     "action": "Action",
@@ -172,7 +259,14 @@
     "posTop": "Primary on Top, Secondary on Bottom",
     "posBottom": "Primary on Bottom, Secondary on Top",
     "startMerge": "Merge Subtitles",
-    "startSplit": "Split Subtitles"
+    "startSplit": "Split Subtitles",
+    "primaryFileTip": "Click or drag primary subtitle (.srt / .vtt / .ass)",
+    "secondaryFileTip": "Click or drag secondary subtitle (.srt / .vtt / .ass)",
+    "splitFileLabel": "Bilingual Subtitle Source File",
+    "splitFileTip": "Click or drag bilingual subtitle file with 2 lines",
+    "splitFileDesc": "Automatically splits two lines per cue into Part 1 and Part 2 independent files",
+    "layout": "Bilingual Subtitle Layer Order",
+    "processing": "Processing..."
   },
   "videoCompressor": {
     "preset": "Compression Preset",
@@ -181,13 +275,36 @@
     "presetFast": "720p Fast (Smaller file, faster transfer)",
     "presetTarget": "Specify Target File Size",
     "targetSize": "Target Size (MB)",
-    "startCompress": "Compress Video"
+    "startCompress": "Compress Video",
+    "dropVideo": "Click or drag video files here (batch compression supported)",
+    "dropVideoDesc": "Powered by H.264 and smart bitrate adaptation to shrink video size quickly",
+    "presetWechatDesc": "Automatically limits video under 25MB with adaptive bitrate for instant messaging",
+    "presetBalancedDesc": "H.264 CRF 24 encoding, suitable for TikTok, YouTube, standard HD sharing",
+    "presetFastDesc": "Downscale to 720p and lower bitrate for ultra-small file size and faster transfer",
+    "compressing": "Compressing...",
+    "compressCount": "Start Compression ({{count}} videos)"
   },
   "videoToGif": {
     "fps": "GIF Frame Rate",
     "width": "GIF Width",
     "startExport": "Generate High-Quality GIF",
-    "highQualityNotice": "Uses two-pass PaletteGen algorithm for vibrant, artifact-free GIFs"
+    "highQualityNotice": "Uses two-pass PaletteGen algorithm for vibrant, artifact-free GIFs",
+    "dropVideo": "Click or drag video here to generate GIF",
+    "dropVideoDesc": "Capture clips to create crisp, grain-free HD GIF memes",
+    "setStart": "Set Current as Start",
+    "setEnd": "Set Current as End",
+    "duration": "GIF Duration: {{duration}}s",
+    "gifParams": "GIF Parameters",
+    "fpsLabel": "GIF Frame Rate (FPS)",
+    "fps10": "10 fps (Small size)",
+    "fps12": "12 fps (Smooth classic)",
+    "fps15": "15 fps (High framerate)",
+    "fps20": "20 fps (Ultra smooth)",
+    "widthLabel": "GIF Width (Aspect Ratio Preserved)",
+    "width320": "320 px (Meme size)",
+    "width480": "480 px (Standard medium)",
+    "width640": "640 px (HD large)",
+    "rendering": "Rendering GIF..."
   },
   "finishBar": {
     "partial": "Some outputs completed. Review failed items.",
@@ -224,5 +341,54 @@
     "stay": "Keep working",
     "cancelAndLeave": "Cancel processing and leave",
     "clearAndLeave": "Clear queue and leave"
+  },
+  "enterTool": "Open Tool",
+  "exportSettings": "Export Settings",
+  "browse": "Browse",
+  "videoOcr": {
+    "title": "Hardcoded Subtitle OCR (PP-OCRv6)",
+    "start": "Start Extraction",
+    "failed": "Subtitle extraction failed",
+    "success": "Subtitle extraction completed"
+  },
+  "videoRemaker": {
+    "dropVideosHere": "Drop videos to remake here",
+    "dropVideosDesc": "Supports MP4, MOV, MKV, AVI... Batch processing supported",
+    "levelTitle": "Remake Level & Anti-Duplicate Mode",
+    "presetSafe": "Level 1 - Safe (100% Natural)",
+    "presetSafeDesc": "Micro-zoom 2%, subtle dynamic noise, 1.02x speed, GOP scrambling, and clean metadata. Visually indistinguishable to human eyes.",
+    "presetBalanced": "Level 2 - Balanced (Recommended)",
+    "presetBalancedDesc": "Micro-zoom 3%, dynamic noise, 1.03x speed, subtle color shift, +0.3st pitch shift, GOP scrambling. Ideal for TikTok, Reels, Shorts.",
+    "presetAggressive": "Level 3 - Aggressive (Max Evasion)",
+    "presetAggressiveDesc": "Micro-zoom 4%, horizontal mirror flip, 1.05x speed, color grading & vignette, +0.5st pitch shift, GOP scrambling. For heavily flagged content.",
+    "presetCustom": "Level 4 - Custom Fine-Tuning",
+    "presetCustomDesc": "Freely enable or disable each effect and dial parameters to your custom recipe.",
+    "customControlsTitle": "Detailed Parameter Controls",
+    "customActive": "Custom formula active",
+    "microZoom": "Micro-Zoom & Crop",
+    "mirrorFlip": "Mirror Flip (Horizontal)",
+    "mirrorFlipDesc": "Flips the video frame horizontally",
+    "microNoise": "Micro Dynamic Noise Layer",
+    "microNoiseDesc": "Adds imperceptible time-varying noise to alter pHash fingerprints",
+    "noiseStrength": "Noise strength",
+    "colorShift": "Color & Histogram Micro-Shift",
+    "colorShiftDesc": "+2% contrast, +0.01 gamma to disrupt AI color histogram matching",
+    "vignette": "Soft Cinematic Vignette",
+    "vignetteDesc": "Gently darkens frame corners",
+    "speed": "Timeline Micro-Speed",
+    "speedDesc": "Slightly alters scene timestamp intervals from the original",
+    "pitchShift": "Audio Pitch Shift",
+    "pitchShiftDesc": "Shifts spectrogram frequencies to bypass audio Content ID",
+    "pitchAmount": "Pitch semitones",
+    "randomGop": "GOP / Keyframe Interval Scrambling",
+    "randomGopDesc": "Alters I-frame keyframe cadence to disrupt fast frame samplers",
+    "clearMetadata": "Strip All Metadata & EXIF",
+    "clearMetadataDesc": "Purges hardware fingerprints and previous editing tool signatures",
+    "outputDirTitle": "Export Directory",
+    "sameAsInput": "Same as original folder",
+    "processing": "Remaking video...",
+    "startProcess": "Start Remaking Video",
+    "startProcessCount": "Start Remaking {{count}} Videos",
+    "queueEmpty": "No videos in queue"
   }
 }

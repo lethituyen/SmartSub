@@ -3,6 +3,7 @@ import path from 'path';
 import { isSubtitleFile } from 'lib/utils';
 import { toast } from 'sonner';
 import { useTranslation } from 'next-i18next';
+import { joinSubtitleContent } from '../lib/proofreadUtils';
 import { IFiles } from '../../types';
 import {
   subtitleOutputFilesToSave,
@@ -43,6 +44,7 @@ export interface PlayerSubtitleTrack {
   srcLang: string;
   label: string;
   default?: boolean;
+  role?: string;
 }
 
 // 将时间字符串转换为秒
@@ -541,14 +543,12 @@ export const useSubtitles = (
       const toMerge = mergedSubtitles.slice(startIndex, endIndex);
       if (toMerge.length < 2) return;
 
-      const mergedContent = toMerge
-        .map((s) => s.sourceContent)
-        .filter(Boolean)
-        .join('\n');
-      const mergedTarget = toMerge
-        .map((s) => s.targetContent)
-        .filter(Boolean)
-        .join('\n');
+      const mergedContent = joinSubtitleContent(
+        toMerge.map((s) => s.sourceContent),
+      );
+      const mergedTarget = joinSubtitleContent(
+        toMerge.map((s) => s.targetContent),
+      );
 
       const startTime = toMerge[0].startTimeInSeconds || 0;
       const endTime = toMerge[toMerge.length - 1].endTimeInSeconds || 0;

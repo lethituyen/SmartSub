@@ -201,6 +201,9 @@ export function deriveComposeConfig(
             style,
             videoQuality,
             encoderMode,
+            antiDuplicate: compose.antiDuplicate,
+            blurOldSubtitles: compose.blurOldSubtitles,
+            watermark: compose.watermark,
           };
   }
 

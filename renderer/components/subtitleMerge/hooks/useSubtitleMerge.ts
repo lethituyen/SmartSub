@@ -12,6 +12,9 @@ import type {
   HwAccelInfo,
   UserStylePreset,
   ComposeJobView,
+  BlurSubtitleConfig,
+  WatermarkConfig,
+  AntiDuplicateConfig,
 } from '../../../../types/subtitleMerge';
 import {
   getDefaultStyle,
@@ -79,6 +82,32 @@ export function useSubtitleMerge(options: UseSubtitleMergeOptions = {}) {
       softContainer: 'mkv',
       videoQuality: 'original',
       encoderMode: 'cpu',
+      blurOldSubtitles: {
+        enabled: false,
+        mode: 'auto',
+        blurStrength: 10,
+      },
+      watermark: {
+        enabled: false,
+        positionPreset: 'top-right',
+        scalePercent: 15,
+        opacity: 90,
+      },
+      antiDuplicate: {
+        enabled: false,
+        preset: 'balanced',
+        microZoomPercent: 3,
+        mirrorFlip: false,
+        microNoise: true,
+        microNoiseStrength: 2,
+        colorShift: true,
+        vignette: false,
+        speedMultiplier: 1.03,
+        pitchShift: true,
+        pitchSemitones: 0.3,
+        randomGop: true,
+        clearMetadata: true,
+      },
     },
   );
   const { value, current, update, isBlocked, touched, epoch } = document;
@@ -723,6 +752,68 @@ export function useSubtitleMerge(options: UseSubtitleMergeOptions = {}) {
     },
     [edit],
   );
+  const updateBlurOldSubtitles = useCallback(
+    (updates: Partial<BlurSubtitleConfig>) => {
+      edit(
+        (doc) => ({
+          blurOldSubtitles: {
+            enabled: false,
+            mode: 'auto',
+            blurStrength: 10,
+            ...(doc.blurOldSubtitles || {}),
+            ...updates,
+          },
+        }),
+        `blur:${Object.keys(updates).sort().join(',')}`,
+      );
+    },
+    [edit],
+  );
+  const updateWatermark = useCallback(
+    (updates: Partial<WatermarkConfig>) => {
+      edit(
+        (doc) => ({
+          watermark: {
+            enabled: false,
+            positionPreset: 'top-right',
+            scalePercent: 15,
+            opacity: 90,
+            ...(doc.watermark || {}),
+            ...updates,
+          },
+        }),
+        `watermark:${Object.keys(updates).sort().join(',')}`,
+      );
+    },
+    [edit],
+  );
+  const updateAntiDuplicate = useCallback(
+    (updates: Partial<AntiDuplicateConfig>) => {
+      edit(
+        (doc) => ({
+          antiDuplicate: {
+            enabled: false,
+            preset: 'balanced',
+            microZoomPercent: 3,
+            mirrorFlip: false,
+            microNoise: true,
+            microNoiseStrength: 2,
+            colorShift: true,
+            vignette: false,
+            speedMultiplier: 1.03,
+            pitchShift: true,
+            pitchSemitones: 0.3,
+            randomGop: true,
+            clearMetadata: true,
+            ...(doc.antiDuplicate || {}),
+            ...updates,
+          },
+        }),
+        `antidup:${Object.keys(updates).sort().join(',')}`,
+      );
+    },
+    [edit],
+  );
   const applyPreset = useCallback(
     (id: string) => {
       const preset =
@@ -957,6 +1048,9 @@ export function useSubtitleMerge(options: UseSubtitleMergeOptions = {}) {
         outputMode: doc.outputMode,
         videoQuality: doc.videoQuality,
         encoderMode,
+        blurOldSubtitles: doc.blurOldSubtitles,
+        watermark: doc.watermark,
+        antiDuplicate: doc.antiDuplicate,
         ...(doc.audioTrackPath
           ? {
               audioTrack: {
@@ -1143,6 +1237,35 @@ export function useSubtitleMerge(options: UseSubtitleMergeOptions = {}) {
     setSoftContainer,
     setVideoQuality,
     setEncoderMode,
+    blurOldSubtitles: value.blurOldSubtitles || {
+      enabled: false,
+      mode: 'auto',
+      blurStrength: 10,
+    },
+    updateBlurOldSubtitles,
+    watermark: value.watermark || {
+      enabled: false,
+      positionPreset: 'top-right',
+      scalePercent: 15,
+      opacity: 90,
+    },
+    updateWatermark,
+    antiDuplicate: value.antiDuplicate || {
+      enabled: false,
+      preset: 'balanced',
+      microZoomPercent: 3,
+      mirrorFlip: false,
+      microNoise: true,
+      microNoiseStrength: 2,
+      colorShift: true,
+      vignette: false,
+      speedMultiplier: 1.03,
+      pitchShift: true,
+      pitchSemitones: 0.3,
+      randomGop: true,
+      clearMetadata: true,
+    },
+    updateAntiDuplicate,
     startMerge,
     cancelMerge,
     openOutputFolder,

@@ -10,10 +10,10 @@ import { fileURLToPath } from 'node:url';
 
 const LIMIT_MB = Number(process.env.BUNDLE_LIMIT_MB || 200);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const distDir = path.join(root, 'dist');
+const distDir = fs.existsSync(path.join(root, 'release')) ? path.join(root, 'release') : path.join(root, 'dist');
 
 if (!fs.existsSync(distDir)) {
-  console.error('dist/ not found; run a build first (npm run build:local)');
+  console.error('Neither release/ nor dist/ found; run a build first (npm run build:local)');
   process.exit(1);
 }
 

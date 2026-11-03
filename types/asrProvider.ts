@@ -68,6 +68,7 @@ export const ASR_ALIYUN = 'aliyun';
 export const ASR_XFYUN = 'xfyun';
 export const ASR_GLADIA = 'gladia';
 export const ASR_XIAOMI_MIMO = 'xiaomiMimo';
+export const ASR_JIANYING = 'jianying';
 
 /**
  * 火山豆包极速版：官方音频上限 2h/100MB，但 base64 进 JSON 体膨胀 ×4/3 且整体驻留内存，
@@ -767,6 +768,55 @@ export const ASR_PROVIDER_TYPES: AsrProviderType[] = [
         type: 'number',
         required: false,
         defaultValue: 0.7,
+        step: 0.1,
+        tips: 'asrRequestIntervalTips',
+      },
+    ],
+  },
+  {
+    id: ASR_JIANYING,
+    name: '剪映 / 抖音 ASR (JianYing Free)',
+    shortName: '剪映 ASR',
+    isBuiltin: true,
+    icon: '🎬',
+    iconImg: '/images/providers/jianying.svg',
+    audioLimits: {
+      maxUploadBytes: 100 * 1024 * 1024,
+    },
+    fields: [
+      {
+        key: 'models',
+        label: 'asrModels',
+        type: 'select',
+        options: ['jianying-default', 'jianying-words'],
+        required: true,
+        defaultValue: 'jianying-default',
+        tips: 'asrModelsJianyingTips',
+      },
+      {
+        key: 'requestTimeoutSec',
+        label: 'asrRequestTimeout',
+        type: 'number',
+        required: false,
+        defaultValue: 300,
+        step: 10,
+        tips: 'asrRequestTimeoutTips',
+      },
+      {
+        key: 'concurrency',
+        label: 'asrConcurrency',
+        type: 'number',
+        required: false,
+        defaultValue: 2,
+        step: 1,
+        tips: 'asrConcurrencyTips',
+      },
+      {
+        key: 'requestInterval',
+        label: 'requestInterval',
+        type: 'number',
+        required: false,
+        defaultValue: 0,
         step: 0.1,
         tips: 'asrRequestIntervalTips',
       },

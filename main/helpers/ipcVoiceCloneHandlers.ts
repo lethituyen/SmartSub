@@ -56,6 +56,7 @@ import {
   TTS_VOLCENGINE,
   isTtsProviderConfigured,
 } from '../../types/ttsProvider';
+import { extractSpeakerEmbedding } from './audiocpp/audioCppManager';
 
 interface VoiceCloneResponse<T = unknown> {
   success: boolean;
@@ -74,15 +75,19 @@ function fail(error: unknown): VoiceCloneResponse {
   };
 }
 
-/** 克隆音色对应的本地模型（zipvoice 双语克隆）。 */
+/** 克隆音色对应的本地模型（zipvoice 双语克隆 / vieneu 越南语克隆）。 */
 const ZIPVOICE_MODEL_ID = 'zipvoice-distill-zh-en';
+const VIENEU_MODEL_ID = 'vieneu-vietnamese';
 
 /** 火山训练轮询：3s × 30 ≈ 90s，超窗以 training 入库不阻塞。 */
 const VOLC_POLL_INTERVAL_MS = 3000;
 const VOLC_POLL_MAX_TRIES = 30;
 
 /** 试听样本固定文本（按音色语言）。 */
-function sampleText(language: 'zh' | 'en'): string {
+function sampleText(language: 'zh' | 'en' | 'vi'): string {
+  if (language === 'vi') {
+    return 'Xin chào, đây là giọng nói nhân bản của tôi. Rất vui được gặp bạn.';
+  }
   return language === 'en'
     ? 'Hello, this is my cloned voice. Nice to meet you.'
     : '你好，这是我的克隆音色，很高兴认识你。';
@@ -90,21 +95,30 @@ function sampleText(language: 'zh' | 'en'): string {
 
 /** 创建/重生成试听样本：previewVoice 同链路合成到临时 wav，再归档进音色目录。 */
 async function synthesizeSampleFor(voice: ClonedVoice): Promise<string> {
-  // 云端克隆（火山/EL）走对应 provider 通道 + 云端音色 id；zipvoice 走本地。
-  const r =
-    voice.engine !== 'zipvoice'
-      ? await previewVoice(
-          { kind: 'cloud', providerId: voice.providerId! },
-          voice.speakerId!,
-          sampleText(voice.language),
-          { language: voice.language },
-        )
-      : await previewVoice(
-          { kind: 'local', modelId: ZIPVOICE_MODEL_ID },
-          voice.id,
-          sampleText(voice.language),
-          { language: voice.language },
-        );
+  // 云端克隆（火山/EL）走对应 provider 通道 + 云端音色 id；zipvoice / vieneu 走本地。
+  let r;
+  if (voice.engine === 'vieneu') {
+    r = await previewVoice(
+      { kind: 'local', modelId: VIENEU_MODEL_ID },
+      voice.id,
+      sampleText(voice.language),
+      { language: voice.language },
+    );
+  } else if (voice.engine === 'zipvoice') {
+    r = await previewVoice(
+      { kind: 'local', modelId: ZIPVOICE_MODEL_ID },
+      voice.id,
+      sampleText(voice.language),
+      { language: voice.language },
+    );
+  } else {
+    r = await previewVoice(
+      { kind: 'cloud', providerId: voice.providerId! },
+      voice.speakerId!,
+      sampleText(voice.language),
+      { language: voice.language },
+    );
+  }
   const dest = path.join(getClonedVoiceDir(voice.id), 'sample.wav');
   fs.copyFileSync(r.wavPath, dest);
   try {
@@ -469,10 +483,10 @@ export function setupVoiceCloneHandlers(mainWindow: BrowserWindow) {
         startMs: number;
         endMs: number;
         engine: VoiceCloneEngine;
-        language: 'zh' | 'en';
+        language: 'zh' | 'en' | 'vi';
         name: string;
-        refText: string;
-        /** zipvoice：本地降噪（gtcrn；损相似度，噪音黄牌素材建议开）。 */
+        refText?: string;
+        /** zipvoice / vieneu：本地降噪（gtcrn；损相似度，噪音黄牌素材建议开）。 */
         localDenoise?: boolean;
         /** 火山分支参数（engine='volcengine' 时必传）。 */
         volc?: {
@@ -525,8 +539,8 @@ export function setupVoiceCloneHandlers(mainWindow: BrowserWindow) {
           endMs,
           target,
           path.join(dir, 'ref.wav'),
-          // 本地降噪仅 zipvoice 消费（火山有服务端降噪开关）。
-          { denoise: engine === 'zipvoice' && !!localDenoise },
+          // 本地降噪仅 zipvoice / vieneu 消费（火山有服务端降噪开关）。
+          { denoise: (engine === 'zipvoice' || engine === 'vieneu') && !!localDenoise },
         );
         if (report.issues.some((i) => i.severity === 'error')) {
           fs.rmSync(dir, { recursive: true, force: true });
@@ -561,7 +575,7 @@ export function setupVoiceCloneHandlers(mainWindow: BrowserWindow) {
           await trainVolcCloneVoice(volcProvider, {
             speakerId,
             refWavPath,
-            language,
+            language: language === 'en' ? 'en' : 'zh',
             options: { denoise: volc?.denoise, mss: volc?.mss },
           });
           const { state, trainingTimesLeft } = await pollVolcTraining(
@@ -590,8 +604,18 @@ export function setupVoiceCloneHandlers(mainWindow: BrowserWindow) {
 
         saveClonedVoice(voice);
 
+        // Trích xuất vector âm sắc CAM++ cho VieNeu nếu là engine vieneu
+        if (engine === 'vieneu' && voice.refWavPath && fs.existsSync(voice.refWavPath)) {
+          try {
+            const embPath = path.join(dir, 'speaker.emb.txt');
+            await extractSpeakerEmbedding(voice.refWavPath, embPath);
+          } catch (e) {
+            logMessage(`VieNeu extractSpeakerEmbedding failed: ${e}`, 'warning');
+          }
+        }
+
         // 试听样本 best-effort：模型未装/训练中/合成失败不阻断创建（面板可重试）。
-        if (engine === 'zipvoice' || voice.trainStatus === 'ready') {
+        if (engine === 'zipvoice' || engine === 'vieneu' || voice.trainStatus === 'ready') {
           try {
             voice.sampleWavPath = await synthesizeSampleFor(voice);
             saveClonedVoice(voice);
@@ -676,7 +700,7 @@ export function setupVoiceCloneHandlers(mainWindow: BrowserWindow) {
         await trainVolcCloneVoice(provider, {
           speakerId: voice.speakerId,
           refWavPath: voice.refWavPath,
-          language: voice.language,
+          language: voice.language === 'en' ? 'en' : 'zh',
           options: { denoise, mss },
         });
         const { state, trainingTimesLeft } = await pollVolcTraining(
@@ -987,6 +1011,14 @@ export function setupVoiceCloneHandlers(mainWindow: BrowserWindow) {
             voice.refWavPath,
             Buffer.from(pkg.refWavBase64, 'base64'),
           );
+          if (pkg.voice.engine === 'vieneu') {
+            try {
+              const embPath = path.join(dir, 'speaker.emb.txt');
+              await extractSpeakerEmbedding(voice.refWavPath, embPath);
+            } catch (e) {
+              logMessage(`VieNeu extractSpeakerEmbedding on import failed: ${e}`, 'warning');
+            }
+          }
         }
         if (pkg.sampleWavBase64) {
           voice.sampleWavPath = path.join(dir, 'sample.wav');

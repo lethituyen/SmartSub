@@ -40,11 +40,13 @@ export function localTtsLanguageError(
   language?: string,
 ): string | undefined {
   const supported =
-    modelId === 'vits-zh-aishell3'
-      ? ['zh']
-      : ['kokoro-multi-lang-v1_1', 'zipvoice-distill-zh-en'].includes(modelId)
-        ? ['zh', 'en']
-        : undefined;
+    modelId === 'piper-vietnamese' || modelId === 'kokoro-vietnamese'
+      ? ['vi']
+      : modelId === 'vits-zh-aishell3'
+        ? ['zh']
+        : ['kokoro-multi-lang-v1_1', 'zipvoice-distill-zh-en'].includes(modelId)
+          ? ['zh', 'en']
+          : undefined;
   const base = ttsBaseLanguage(language);
   if (base && supported && !supported.includes(base)) return language;
   return undefined;

@@ -116,7 +116,7 @@ async function repairSubtitleEntry(
       const attemptPrompt =
         attempt === 0
           ? repairPrompt
-          : `${repairPrompt}\n\n上一次结果仍为空、无效或直接重复了原文。请实际翻译目标句后再返回。`;
+          : `${repairPrompt}\n\nThe previous attempt was empty, invalid, or simply copied the source text. Please translate the target sentence into ${targetLanguageName} and return only the requested JSON object.`;
       params.onAttempt?.(attempt);
       const responseOrigin = await params.translator(
         attemptPrompt,
@@ -320,8 +320,8 @@ export async function handleAIBatchTranslation(
 
         if (retryCount > 0 || alignmentRetryUsed) {
           translationContent += echoEnabled
-            ? '\n\n上一次响应存在错位、未翻译或无法解析。请只返回一个 JSON 对象：键必须与输入字幕 ID 完全一致，每个键的值是 {"src": ..., "tr": ...}。注意：src 必须逐字复制输入中该 ID 对应的原文（保持原语言，绝对不能填译文），tr 才是目标语言译文且不能直接复制原文；禁止合并或拆分条目，不要返回 markdown、解释或思考过程。'
-            : '\n\n上一次响应存在未翻译或无法解析。请只返回一个 JSON 对象，键必须是输入字幕 ID，值必须是目标语言翻译结果且不能直接复制原文；不要返回 markdown、解释、注释或思考过程。';
+            ? '\n\nThe previous response had misalignment, untranslated entries, or invalid JSON. Return ONLY a valid JSON object matching the exact input subtitle IDs. Each value must be {"src": ..., "tr": ...}. Note: "src" must be a verbatim copy of the input source text for that ID (keep original language), and "tr" must be the target language translation (do not copy source verbatim). Strictly do not merge, split, or add markdown, comments, or explanations.'
+            : '\n\nThe previous response was incomplete or could not be parsed. Return ONLY a valid JSON object where keys are the input subtitle IDs and values are the target language translations. Strictly do not merge, split, or add markdown, comments, or explanations.';
         }
 
         let systemPrompt = renderTranslationSystemPrompt(

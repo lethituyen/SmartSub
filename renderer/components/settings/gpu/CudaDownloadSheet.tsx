@@ -61,6 +61,7 @@ const CudaDownloadSheet: React.FC<CudaDownloadSheetProps> = ({
     () => getCompatibleCudaVersions(gpuEnv, availableCudaVersions),
     [gpuEnv, availableCudaVersions],
   );
+  const defaultEdition = getDefaultPackageEdition(gpuEnv);
   const fallbackVersion = useMemo(
     () =>
       presetVersion ??
@@ -78,10 +79,8 @@ const CudaDownloadSheet: React.FC<CudaDownloadSheetProps> = ({
 
   const [selectedVersion, setSelectedVersion] =
     useState<CudaVersion>(fallbackVersion);
-  const [selectedEdition, setSelectedEdition] = useState<PackageEdition>(() =>
-    getDefaultPackageEdition(gpuEnv, fallbackVersion),
-  );
-  const defaultEdition = getDefaultPackageEdition(gpuEnv, selectedVersion);
+  const [selectedEdition, setSelectedEdition] =
+    useState<PackageEdition>(defaultEdition);
   const [sizeHints, setSizeHints] = useState<{
     full: number | null;
     lite: number | null;
@@ -91,8 +90,8 @@ const CudaDownloadSheet: React.FC<CudaDownloadSheetProps> = ({
   useEffect(() => {
     if (!open) return;
     setSelectedVersion(fallbackVersion);
-    setSelectedEdition(getDefaultPackageEdition(gpuEnv, fallbackVersion));
-  }, [open, fallbackVersion, gpuEnv]);
+    setSelectedEdition(defaultEdition);
+  }, [open, fallbackVersion, defaultEdition]);
 
   useEffect(() => {
     if (!open) return;
@@ -115,15 +114,11 @@ const CudaDownloadSheet: React.FC<CudaDownloadSheetProps> = ({
     return bytes ? formatSize(bytes) : t(`gpuAcceleration.${fallbackKey}`);
   };
 
-  const liteAllowed = canDownloadLiteEdition(gpuEnv, selectedVersion);
   const reason = getRecommendationReasonText(
     t,
-    liteAllowed
-      ? 'toolkitInstalled'
-      : gpuEnv.nvidia?.cudaToolkit.installed
-        ? 'toolkitIncompatible'
-        : 'toolkitMissing',
+    gpuEnv.nvidia?.recommendation.reasonKey,
   );
+  const liteAllowed = canDownloadLiteEdition(gpuEnv);
   const isBusy = !!downloadingVariant;
   const canStart = !isBusy && (selectedEdition === 'full' || liteAllowed);
   const maxCuda = gpuEnv.nvidia?.gpuSupport.maxCudaVersion;
@@ -134,7 +129,6 @@ const CudaDownloadSheet: React.FC<CudaDownloadSheetProps> = ({
   };
 
   const handleConfirm = () => {
-    if (!canStart) return;
     onConfirmDownload(selectedVersion, editionToDownloadType(selectedEdition));
     onOpenChange(false);
   };
@@ -189,12 +183,7 @@ const CudaDownloadSheet: React.FC<CudaDownloadSheetProps> = ({
                     key={version}
                     type="button"
                     disabled={isBusy}
-                    onClick={() => {
-                      setSelectedVersion(version);
-                      setSelectedEdition(
-                        getDefaultPackageEdition(gpuEnv, version),
-                      );
-                    }}
+                    onClick={() => setSelectedVersion(version)}
                     className={`min-h-[2.25rem] px-3 py-1.5 rounded-md border text-sm transition-all ${
                       isSelected
                         ? 'border-primary bg-primary/5 font-medium'

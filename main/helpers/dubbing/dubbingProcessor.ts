@@ -724,6 +724,81 @@ function buildEngineAdapter(
         `本地模型 ${spec.displayName} 未安装，请先在「配音服务」页下载`,
       );
     }
+
+    if (modelId === 'piper-vietnamese') {
+      const { synthesizeWithPiper } =
+        require('../piper/piperManager') as typeof import('../piper/piperManager');
+      return {
+        concurrency: 2,
+        synthesize: async (
+          text,
+          voiceId,
+          speed,
+          outWavPath,
+          signal,
+          language,
+        ) => {
+          if (localTtsLanguageError(modelId, language)) {
+            throw new Error(
+              `${spec.displayName} không hỗ trợ ngôn ngữ ${language}, vui lòng chọn tiếng Việt (vi).`,
+            );
+          }
+          return synthesizeWithPiper({
+            text,
+            voiceId,
+            speed,
+            outWavPath,
+            signal,
+          });
+        },
+      };
+    }
+
+    if (modelId === 'vieneu-vietnamese') {
+      const { synthesizeWithVieNeu } =
+        require('../vieneu/vieneuManager') as typeof import('../vieneu/vieneuManager');
+      const { getClonedVoiceById } =
+        require('../voiceClone/voiceCloneManager') as typeof import('../voiceClone/voiceCloneManager');
+      return {
+        // Model 1.7B LLM chạy tuần tự 1 luồng để tránh tràn VRAM trên GPU 4GB-6GB
+        concurrency: 1,
+        synthesize: async (
+          text,
+          voiceId,
+          speed,
+          outWavPath,
+          signal,
+          language,
+        ) => {
+          if (localTtsLanguageError(modelId, language)) {
+            throw new Error(
+              `${spec.displayName} không hỗ trợ ngôn ngữ ${language}, vui lòng chọn tiếng Việt (vi).`,
+            );
+          }
+          const cloned = getClonedVoiceById(voiceId);
+          if (cloned && cloned.engine === 'vieneu') {
+            if (!cloned.refWavPath || !fs.existsSync(cloned.refWavPath)) {
+              throw new Error(`Giọng nhân bản «${cloned.name}» thiếu file âm thanh mẫu.`);
+            }
+            return synthesizeWithVieNeu({
+              text,
+              refAudioPath: cloned.refWavPath,
+              speed,
+              outWavPath,
+              signal,
+            });
+          }
+          return synthesizeWithVieNeu({
+            text,
+            voiceId,
+            speed,
+            outWavPath,
+            signal,
+          });
+        },
+      };
+    }
+
     const model = getTtsModelRequest(modelId);
     const runtime = getSherpaTtsRuntime();
     // 本地并行合成：进程池按需扩展（每路一份模型驻留内存，批量结束收缩）。
@@ -775,8 +850,27 @@ function buildEngineAdapter(
               `${spec.displayName} 不支持配音语言 ${language}，请选择支持该语言的引擎`,
             );
           const voice = getClonedVoiceById(voiceId);
-          if (!voice || voice.engine !== 'zipvoice') {
-            throw new Error('克隆音色不存在或已删除，请重新选择音色');
+          if (!voice) {
+            throw new Error('Giọng nhân bản không tồn tại hoặc đã bị xóa.');
+          }
+          if (voice.engine === 'vieneu') {
+            const { synthesizeWithVieNeu } =
+              require('../vieneu/vieneuManager') as typeof import('../vieneu/vieneuManager');
+            if (!voice.refWavPath || !fs.existsSync(voice.refWavPath)) {
+              throw new Error(
+                `Giọng nhân bản «${voice.name}» thiếu file âm thanh mẫu, vui lòng tạo lại.`,
+              );
+            }
+            return synthesizeWithVieNeu({
+              text,
+              refAudioPath: voice.refWavPath,
+              speed,
+              outWavPath,
+              signal,
+            });
+          }
+          if (voice.engine !== 'zipvoice') {
+            throw new Error('Giọng nhân bản không thuộc engine cục bộ này.');
           }
           if (!voice.refWavPath || !fs.existsSync(voice.refWavPath)) {
             throw new Error(
@@ -2068,9 +2162,11 @@ export async function previewVoice(
   );
   const sample =
     text?.trim() ||
-    (ttsBaseLanguage(language) === 'zh'
-      ? '你好，项目已经完成了90%。'
-      : 'Hello, the project is 90% complete.');
+    (ttsBaseLanguage(language) === 'vi'
+      ? 'Xin chào, đây là giọng đọc thử nghiệm tiếng Việt.'
+      : ttsBaseLanguage(language) === 'zh'
+        ? '你好，项目已经完成了90%。'
+        : 'Hello, the project is 90% complete.');
   const outWavPath = path.join(
     ensureTempDir(),
     'dubbing',

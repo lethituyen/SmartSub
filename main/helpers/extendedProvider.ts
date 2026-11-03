@@ -1,8 +1,6 @@
 import { logMessage } from './storeManager';
 import { configurationManager } from '../service/configurationManager';
 import { ExtendedProvider, CustomParameterConfig } from '../../types/provider';
-import { getTaskContext } from './taskContext';
-import { resolveCredentials } from './taskRuns/configuration';
 
 /**
  * Load custom parameters for a provider and create an ExtendedProvider
@@ -12,11 +10,8 @@ export async function createExtendedProvider(
 ): Promise<ExtendedProvider> {
   try {
     // Get custom parameters from configuration manager
-    const frozen = getTaskContext()?.resolvedConfig?.providerParameters;
-    const current = await configurationManager.getConfiguration(baseProvider.id);
-    const providerCustomParams: CustomParameterConfig | null = frozen
-      ? resolveCredentials(frozen[baseProvider.id] ?? null, current)
-      : current;
+    const providerCustomParams: CustomParameterConfig | null =
+      await configurationManager.getConfiguration(baseProvider.id);
 
     // Create extended provider with custom parameters
     const extendedProvider: ExtendedProvider = {

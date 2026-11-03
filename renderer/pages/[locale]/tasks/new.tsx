@@ -25,7 +25,6 @@ export const getStaticProps = makeStaticProperties([
   'common',
   'home',
   'tasks',
-  'dubbing',
   'subtitleMerge',
   'translateControl',
 ]);

@@ -195,12 +195,12 @@ export function buildRepairRequest(
 
   const sourceText = subtitle.content.join('\n');
   const contextBlock = contextLines.length
-    ? `以下是相邻字幕的原文与已完成的译文（仅供参考语境与术语，请勿翻译它们）：\n${contextLines.join('\n')}\n\n`
+    ? `The following are neighboring subtitle lines with verified translations (for context and terminology reference only; DO NOT translate them):\n${contextLines.join('\n')}\n\n`
     : '';
   const prompt =
-    `${contextBlock}现在请只翻译下面这一条字幕，译为${targetLanguageName}。` +
-    `不要合并或拆分，不要输出任何解释；不要把原文直接复制为译文（数字、网址、专名等无需翻译内容除外）：\n"${sourceText}"\n\n` +
-    `只返回一个 JSON 对象：{"${subtitle.id}": "这条字幕的${targetLanguageName}译文"}`;
+    `${contextBlock}Now translate ONLY this single subtitle cue into natural, concise ${targetLanguageName}.\n` +
+    `Strictly do not merge, split, or output any explanations. Do not copy the source text verbatim (unless it contains only numbers, URLs, or proper names):\n"${sourceText}"\n\n` +
+    `Return ONLY a JSON object: {"${subtitle.id}": "concise and natural ${targetLanguageName} translation"}`;
 
   return {
     prompt,

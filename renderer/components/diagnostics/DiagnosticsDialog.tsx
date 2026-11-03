@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatBytes } from '@/components/tasks/stageUtils';
 import { openUrl } from 'lib/utils';
-import { WhisperProbePanel } from './WhisperProbePanel';
 import {
   isDiagnosticsExported,
   type DiagnosticsExported,
@@ -40,7 +39,6 @@ export function DiagnosticsDialog({
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState<DiagnosticsExported | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [probing, setProbing] = useState(false);
 
   // 每次打开都重新读取清单并清掉上一次的结果
   useEffect(() => {
@@ -96,12 +94,7 @@ export function DiagnosticsDialog({
   const dumpCount = preview?.dumps.length ?? 0;
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(value) => {
-        if (!probing) onOpenChange(value);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -193,13 +186,6 @@ export function DiagnosticsDialog({
               </label>
             )}
 
-            {preview?.whisperProbe && !exporting && (
-              <WhisperProbePanel
-                options={preview.whisperProbe}
-                onRunningChange={setProbing}
-              />
-            )}
-
             <p className="text-xs text-muted-foreground">
               {t('diagnostics.privacy')}
             </p>
@@ -232,7 +218,6 @@ export function DiagnosticsDialog({
               <Button
                 variant="outline"
                 size="sm"
-                disabled={probing}
                 onClick={() => onOpenChange(false)}
               >
                 {t('cancel')}
@@ -240,7 +225,7 @@ export function DiagnosticsDialog({
               <Button
                 size="sm"
                 onClick={handleExport}
-                disabled={!preview || exporting || probing}
+                disabled={!preview || exporting}
               >
                 {exporting
                   ? t('diagnostics.exporting')

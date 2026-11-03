@@ -47,7 +47,10 @@
   "badges": {
     "popular": "常用",
     "lossless": "极速无损",
-    "new": "新工具"
+    "new": "新工具",
+    "aiOcr": "AI OCR",
+    "antiDuplicate": "视频去重 / 防查重",
+    "fastDownload": "高速下载"
   },
   "tools": {
     "subtitle-converter": {
@@ -66,6 +69,10 @@
       "name": "容器内封软字幕提取",
       "desc": "快速扫描 MKV/MP4 内封的文本字幕轨道，按需一键导出独立字幕文件"
     },
+    "video-ocr-subtitles": {
+      "name": "视频硬字幕 OCR 提取 (PP-OCRv6)",
+      "desc": "基于百度最新 PP-OCRv6 与 ONNX Runtime，精准识别无声/纯音乐视频画面的硬字幕并导出标准 SRT"
+    },
     "subtitle-sync": {
       "name": "时间轴平移与漂移校准",
       "desc": "支持全篇字幕时间整体平移、按帧率比例伸缩、首尾双锚点线性时间轴重采样校准"
@@ -81,6 +88,14 @@
     "video-to-gif": {
       "name": "视频片段转高清 GIF",
       "desc": "利用双通道调色板算法截取精彩片段，生成色彩丰富、无噪点的表情包 GIF 动图"
+    },
+    "video-remaker": {
+      "name": "视频深度重塑 (AI 防重 / 去重)",
+      "desc": "集成微缩放、时域噪点、色彩偏移、音调微调与 GOP 关键帧重排等多维反指纹算法，一键过审"
+    },
+    "video-downloader": {
+      "name": "短剧与网页视频下载 (红果短剧 / 抖音 / 网页)",
+      "desc": "支持番茄/红果短剧全集解析、纯JS CENC-AES-CTR解密、批量多线程下载、FFmpeg无损一键合并，并直接联动字幕与配音工作流"
     }
   },
   "subtitleConverter": {
@@ -105,7 +120,25 @@
     "statusDone": "完成",
     "statusError": "失败",
     "fileCount": "共 {{count}} 个文件",
-    "previewTitle": "字幕内容预览 (前 5 条)"
+    "previewTitle": "字幕内容预览 (前 5 条)",
+    "settingsTitle": "转换设置",
+    "dropSubtitles": "支持 SRT, VTT, ASS, SSA, LRC, TXT 等任意字幕格式，自动修正 ANSI/GBK 乱码",
+    "noFiles": "暂无待转换的字幕文件",
+    "formatSrt": "SRT (SubRip - 通用标准)",
+    "formatVtt": "VTT (WebVTT - 网页流媒体)",
+    "formatAss": "ASS (高级样式字幕)",
+    "formatLrc": "LRC (歌词格式)",
+    "formatTxt": "TXT (纯文本)",
+    "encodingUtf8": "UTF-8 (标准推荐)",
+    "encodingUtf8Bom": "UTF-8 with BOM (兼容旧播放器)",
+    "encodingGb18030": "GB18030 / ANSI (Windows 专用)",
+    "cleanFormattingDesc": "去除 ASS 特效及 HTML 字体颜色代码",
+    "keepTimestamp": "保留时间轴标记",
+    "keepTimestampDesc": "在纯文本中保留每句的起止时间",
+    "detectedFormat": "探测格式: ",
+    "detectedCharset": "检测编码: ",
+    "noCues": "无条目内容",
+    "close": "关闭"
   },
   "videoTrimmer": {
     "inPoint": "入点 (Start)",
@@ -125,7 +158,24 @@
     "pausePreview": "暂停预览",
     "resetRange": "重置为整段",
     "setAsIn": "设为入点",
-    "setAsOut": "设为出点"
+    "setAsOut": "设为出点",
+    "settingsTitle": "裁剪设置",
+    "dropVideo": "点击或拖拽视频文件到此处",
+    "supportedFormats": "支持 MP4, MKV, MOV, WebM, AVI, TS 等常见视频格式",
+    "setAsInTip": "将当前播放位置设为入点 (快捷键 [ )",
+    "setAsOutTip": "将当前播放位置设为出点 (快捷键 ] )",
+    "timeInputTip": "可直接输入秒数或分秒格式 (如 12.5 或 01:23.4)",
+    "stepBack1s": "后退 1 秒",
+    "stepBack01s": "后退 0.1 秒",
+    "stepForward01s": "前进 0.1 秒",
+    "stepForward1s": "前进 1 秒",
+    "startEndSeconds": "起止秒数 (精准秒数)",
+    "startSecond": "起始秒",
+    "endSecond": "结束秒",
+    "inPointSet": "入点已设定为 {{time}}",
+    "outPointSet": "出点已设定为 {{time}}",
+    "dragInHandle": "按住向左/向右拖动调整裁剪起点 (入点)",
+    "dragOutHandle": "按住向左/向右拖动调整裁剪终点 (出点)"
   },
   "audioExtractor": {
     "format": "目标音频格式",
@@ -134,7 +184,24 @@
     "presetAsr": "16kHz 单声道 WAV (ASR 语音转写标准格式)",
     "presetStandard": "原采样率立体声",
     "startExtract": "开始提取音频",
-    "batchTip": "支持同时批量提取多个音视频"
+    "batchTip": "支持同时批量提取多个音视频",
+    "optionsTitle": "音频选项",
+    "dropAudio": "拖拽视频文件到此处，或点击浏览选择",
+    "dropAudioDesc": "支持批量提取多个视频音轨，秒级抽离音频",
+    "pendingVideos": "待处理视频: {{count}} 个",
+    "noPendingVideos": "暂无待处理的视频",
+    "clearList": "清空列表",
+    "formatMp3": "MP3 (通用兼容)",
+    "formatWav": "WAV (无损 / 语音识别)",
+    "formatAac": "AAC (高质量流媒体)",
+    "formatM4a": "M4A (Apple 生态)",
+    "formatFlac": "FLAC (高解析无损)",
+    "bitrate320": "320 kbps (最高品质)",
+    "bitrate256": "256 kbps (高品质)",
+    "bitrate192": "192 kbps (标准音乐)",
+    "bitrate128": "128 kbps (高压缩语音)",
+    "wavSpec": "WAV 音轨规范",
+    "extracting": "提取中..."
   },
   "embeddedSubtitles": {
     "scanning": "正在探测内封字幕流...",
@@ -146,7 +213,19 @@
     "titleHeader": "标题描述",
     "exportSelected": "导出所选字幕轨",
     "selectAll": "全选",
-    "deselectAll": "取消全选"
+    "deselectAll": "取消全选",
+    "optionsTitle": "提取选项",
+    "exportFormat": "导出字幕格式",
+    "dropVideo": "点击或拖拽 MKV/MP4 视频到此处扫描",
+    "scanDesc": "快速扫描容器内嵌的 SubRip、ASS、WebVTT、mov_text 软字幕轨",
+    "foundStreams": "发现字幕轨: {{count}} 条",
+    "selectVideoFirst": "请先选择视频文件",
+    "trackNumber": "轨道 #{{number}}",
+    "graphicSubtitle": "图形字幕 (不可提取为文本)",
+    "formatSrt": "SRT (SubRip 通用格式)",
+    "formatAss": "ASS (高级样式格式)",
+    "formatVtt": "VTT (WebVTT 格式)",
+    "extracting": "提取中..."
   },
   "subtitleSync": {
     "mode": "校准模式",
@@ -160,7 +239,15 @@
     "p2Source": "最后一句当前时间 (ms 或 00:00:00,000)",
     "p2Target": "最后一句目标时间 (ms 或 00:00:00,000)",
     "startSync": "执行校准并导出",
-    "syncSuccess": "时间轴校准完成，共更新 {{count}} 条字幕"
+    "syncSuccess": "时间轴校准完成，共更新 {{count}} 条字幕",
+    "dropSubtitle": "点击或拖拽需要校准时间轴的字幕文件到此处",
+    "supportedFormats": "支持 SRT, VTT, ASS 格式，修复整篇字幕提前、滞后或帧率漂移",
+    "quickAdjust": "快捷微调:",
+    "resetZero": "归零",
+    "scaleRatio": "时间轴伸缩比率",
+    "fpsPresets": "常用帧率校准预设:",
+    "twoPointDesc": "分别输入第一句和最后一句当前的时间码与正确的目标时间码，算法将通过线性重采样修正全篇渐进式偏差。",
+    "processing": "校准中..."
   },
   "bilingualSubtitles": {
     "action": "操作方式",
@@ -172,7 +259,14 @@
     "posTop": "主字幕在上方，次字幕在下方",
     "posBottom": "主字幕在下方，次字幕在上方",
     "startMerge": "合并双语字幕",
-    "startSplit": "拆分单语字幕"
+    "startSplit": "拆分单语字幕",
+    "primaryFileTip": "点击或拖拽主字幕文件 (.srt / .vtt / .ass)",
+    "secondaryFileTip": "点击或拖拽次字幕文件 (.srt / .vtt / .ass)",
+    "splitFileLabel": "双语字幕源文件",
+    "splitFileTip": "点击或拖拽包含两行文字的双语字幕文件",
+    "splitFileDesc": "自动将每条字幕中的两行文本拆解为 Part 1 与 Part 2 独立文件",
+    "layout": "双语字幕上下层排布",
+    "processing": "处理中..."
   },
   "videoCompressor": {
     "preset": "压缩档位",
@@ -181,13 +275,36 @@
     "presetFast": "720p 快速压缩 (体积更小，传输更快)",
     "presetTarget": "指定目标文件体积",
     "targetSize": "目标大小 (MB)",
-    "startCompress": "开始压缩视频"
+    "startCompress": "开始压缩视频",
+    "dropVideo": "点击或拖拽视频文件到此处（支持多选批量压缩）",
+    "dropVideoDesc": "基于 H.264 与智能码率自适应，快速减少体积便于社交平台分享",
+    "presetWechatDesc": "自动限制视频体积在 25MB 内，并自适应码率，保证微信秒发",
+    "presetBalancedDesc": "H.264 CRF 24 编码，适合小红书、抖音、B站等主流高清分享",
+    "presetFastDesc": "降分辨率至 720p 并降低码率，体积超小，传输更迅捷",
+    "compressing": "正在压缩中...",
+    "compressCount": "开始压缩 (共 {{count}} 个视频)"
   },
   "videoToGif": {
     "fps": "动图帧率",
     "width": "动图宽度",
     "startExport": "生成高清 GIF",
-    "highQualityNotice": "采用双通道调色板算法 (PaletteGen)，避免噪点与失真"
+    "highQualityNotice": "采用双通道调色板算法 (PaletteGen)，避免噪点与失真",
+    "dropVideo": "点击或拖拽视频到此处截取动图",
+    "dropVideoDesc": "截取精彩片段，生成无噪点的高清 GIF 表情包",
+    "setStart": "设当前为起点",
+    "setEnd": "设当前为终点",
+    "duration": "动图时长: {{duration}} 秒",
+    "gifParams": "动图参数",
+    "fpsLabel": "动图帧率 (FPS)",
+    "fps10": "10 fps (体积小)",
+    "fps12": "12 fps (经典流畅)",
+    "fps15": "15 fps (高帧率逼真)",
+    "fps20": "20 fps (极度丝滑)",
+    "widthLabel": "动图宽度 (等比缩放)",
+    "width320": "320 px (表情包尺寸)",
+    "width480": "480 px (标准中图)",
+    "width640": "640 px (高清大图)",
+    "rendering": "正在渲染动图..."
   },
   "finishBar": {
     "partial": "部分输出已完成，请查看失败项",
@@ -224,5 +341,54 @@
     "stay": "继续处理",
     "cancelAndLeave": "取消处理并离开",
     "clearAndLeave": "清空列表并离开"
+  },
+  "enterTool": "进入工具",
+  "exportSettings": "导出设置",
+  "browse": "浏览",
+  "videoOcr": {
+    "title": "视频硬字幕 OCR 提取 (PP-OCRv6)",
+    "start": "开始提取字幕",
+    "failed": "字幕提取失败",
+    "success": "字幕提取成功"
+  },
+  "videoRemaker": {
+    "dropVideosHere": "拖入需去重或重构的视频",
+    "dropVideosDesc": "支持 MP4, MOV, MKV, AVI 等格式，支持多文件批量处理",
+    "levelTitle": "重塑级别与反查重预设 (Anti-Duplicate)",
+    "presetSafe": "级别 1 - 安全自然 (肉眼无感)",
+    "presetSafeDesc": "微缩放 2%、轻微动态噪点、1.02x 微调速、GOP 关键帧扰动并擦除元数据。肉眼完全无法察觉差异。",
+    "presetBalanced": "级别 2 - 均衡推荐 (最佳实践)",
+    "presetBalancedDesc": "微缩放 3%、时域噪点、1.03x 微调速、微调色彩对比度、音高微调 +0.3st 及 GOP 重排。适用于各大短视频平台。",
+    "presetAggressive": "级别 3 - 深度重构 (强力脱敏)",
+    "presetAggressiveDesc": "微缩放 4%、水平镜像翻转、1.05x 调速、电影暗角与色彩偏移、音调 +0.5st、GOP 重置。适用于严苛版权与重审场景。",
+    "presetCustom": "级别 4 - 高级自定义",
+    "presetCustomDesc": "自由开关任意算法模块并微调参数，定制属于您的独家去重参数方案。",
+    "customControlsTitle": "自定义参数控制面板",
+    "customActive": "当前正应用自定义方案",
+    "microZoom": "微缩放与裁剪 (Micro-Zoom)",
+    "mirrorFlip": "水平镜像翻转 (Mirror Flip)",
+    "mirrorFlipDesc": "左右反转画面构图",
+    "microNoise": "动态微噪点层 (Dynamic Noise)",
+    "microNoiseDesc": "注入随时间动态变化的极微噪点，破坏 pHash 感知哈希指纹",
+    "noiseStrength": "噪点强度",
+    "colorShift": "微调色彩与直方图分布",
+    "colorShiftDesc": "对比度 +2%、Gamma +0.01，破坏基于色调直方图的特征比对",
+    "vignette": "柔和电影暗角 (Vignette)",
+    "vignetteDesc": "四角添加自然柔和微暗角",
+    "speed": "时间轴微变速 (Micro-Speed)",
+    "speedDesc": "微调画面节奏，使抽帧时戳全面错位",
+    "pitchShift": "音频基频微调 (Pitch Shift)",
+    "pitchShiftDesc": "微调音频频谱，有效规避音频 Content ID 指纹库",
+    "pitchAmount": "半音偏移量",
+    "randomGop": "GOP / 关键帧结构重组",
+    "randomGopDesc": "重置 I 帧关键帧间隔，干扰快速抽帧检测器",
+    "clearMetadata": "清除全部元数据与 EXIF",
+    "clearMetadataDesc": "擦除设备信息、编码器标识及历史剪辑指纹",
+    "outputDirTitle": "导出目录",
+    "sameAsInput": "原视频所在目录",
+    "processing": "正在重塑视频...",
+    "startProcess": "开始重塑视频",
+    "startProcessCount": "开始批量重塑 {{count}} 个视频",
+    "queueEmpty": "队列中暂无视频"
   }
 }

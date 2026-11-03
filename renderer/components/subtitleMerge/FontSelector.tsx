@@ -50,7 +50,7 @@ export function FontSample({
       return;
     }
     const leases = (
-      sampleRuns || [{ text: 'SmartSub 字幕示例 123', fontName: name }]
+      sampleRuns || [{ text: 'SmartSub Phụ đề Tiếng Việt 123', fontName: name }]
     ).map((run) =>
       acquireFontSample({
         name: run.fontName,
@@ -81,7 +81,7 @@ export function FontSample({
       className="mt-1 block h-6 text-base leading-6"
     >
       {families
-        ? (sampleRuns || [{ text: 'SmartSub 字幕示例 123' }]).map(
+        ? (sampleRuns || [{ text: 'SmartSub Phụ đề Tiếng Việt 123' }]).map(
             (run, index) => (
               <span
                 key={index}

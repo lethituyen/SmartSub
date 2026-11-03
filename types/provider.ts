@@ -193,21 +193,7 @@ const DEFAULT_SYSTEM_PROMPT_BEFORE_ECHO =
     '\n\${glossary}\n\n# 输出格式要求：',
   );
 
-// v3.4 及更早版本的默认提示词没有词库变量（provider v20 迁移）；
-// v20 的默认提示词没有 src/tr 回显协议（provider v21 迁移）。
-// 迁移只更新仍在使用旧默认值的服务商；用户自定义 prompt 保持不变。
-export const HISTORICAL_DEFAULT_PROMPTS: string[] = [
-  ...HISTORICAL_DEFAULT_PROMPTS_BEFORE_GLOSSARY,
-  DEFAULT_SYSTEM_PROMPT_BEFORE_GLOSSARY,
-  DEFAULT_SYSTEM_PROMPT_BEFORE_ECHO,
-];
-
-/**
- * 当前默认系统提示词：回显锚定协议（design D4/D9）。
- * 模型对每条字幕返回 {src: 原文回显, tr: 译文}，回显用于检测合并/滑移错位；
- * 配合按批次动态生成的 JSON Schema 在解码层面锁死条数。
- */
-export const defaultSystemPrompt = `# Role: 资深翻译专家
+const DEFAULT_SYSTEM_PROMPT_ZH_ECHO = `# Role: 资深翻译专家
 您是一位经验丰富的字幕翻译专家,精通\${sourceLanguage}的翻译,擅长将视频字幕译成流畅易懂的\${targetLanguage}。
 
 # Attention:
@@ -238,6 +224,54 @@ Input:
 
 Output:
 {"0": {"src": "Welcome to China", "tr": "欢迎来到中国"}, "1": {"src": "China is a beautiful country", "tr": "中国是一个美丽的国家"}}
+`;
+
+// v3.4 及更早版本的默认提示词没有词库变量（provider v20 迁移）；
+// v20 的默认提示词没有 src/tr 回显协议（provider v21 迁移）。
+// 中文历史提示词在 v22 迁移至英文标准提示词（含 dubbing / CPS 约束）。
+// 迁移只更新仍在使用旧默认值的服务商；用户自定义 prompt 保持不变。
+export const HISTORICAL_DEFAULT_PROMPTS: string[] = [
+  ...HISTORICAL_DEFAULT_PROMPTS_BEFORE_GLOSSARY,
+  DEFAULT_SYSTEM_PROMPT_BEFORE_GLOSSARY,
+  DEFAULT_SYSTEM_PROMPT_BEFORE_ECHO,
+  DEFAULT_SYSTEM_PROMPT_ZH_ECHO,
+];
+
+/**
+ * 当前默认系统提示词：回显锚定协议（design D4/D9）+ 影视字幕与配音节奏规范。
+ * 模型对每条字幕返回 {src: 原文回显, tr: 译文}，回显用于检测合并/滑移错位；
+ * 配合按批次动态生成的 JSON Schema 在解码层面锁死条数。
+ */
+export const defaultSystemPrompt = `# Role: Professional Subtitle & Dubbing Translation Expert
+You are an expert audiovisual translator specializing in translating video subtitles and spoken dialogue into natural, fluent, and well-paced \${targetLanguage}.
+
+# Attention & Guidelines:
+1. Strict 1:1 Mapping: Maintain the independence and integrity of every subtitle entry. Strictly DO NOT merge, split, or omit entries.
+2. Natural Spoken Dialogue: Use conversational and natural \${targetLanguage}. Avoid overly literal, stiff, or bookish prose.
+3. Dubbing-Friendly & Compact Length: Ensure the translation is concise and rhythmically aligned with speech duration. Avoid verbose phrasing so that reading and speaking speed stays within natural limits (CPS ≤ 22-25) to prevent dubbing audio overflow.
+4. Punctuation & Rhythm: Use punctuation (commas, periods, ellipses) appropriately to match natural speaking cadence, pauses, and emotional delivery.
+5. Terminology Consistency: Ensure accurate technical, cultural, and character terms, maintaining strict contextual consistency.
+
+\${glossary}
+
+# Output Format Requirements:
+1. The input is a JSON object where keys are subtitle IDs and values are source texts.
+2. You MUST return a JSON object with the exact same keys (identical IDs, same count).
+3. Each key must contain an object with two fields:
+   - "src": Verbatim copy of the source subtitle text without any alteration.
+   - "tr": The natural, concise translation in \${targetLanguage}.
+4. Strictly 1:1 correspondence: Even if a sentence spans across multiple subtitle cues, do not merge or shift content between entries.
+5. Do NOT add markdown code fences, comments, thinking tags, or explanations. Return pure, valid JSON only.
+
+Finally, verify that the translation is faithful to the original intent, sounds authentic to native speakers of \${targetLanguage}, and is well-adapted to the target language's spoken conventions.
+
+# Examples
+
+Input:
+{"0": "Welcome everyone to our video presentation.", "1": "Today we will explore the core features together."}
+
+Output:
+{"0": {"src": "Welcome everyone to our video presentation.", "tr": "Chào mừng mọi người đến với buổi thuyết trình."}, "1": {"src": "Today we will explore the core features together.", "tr": "Hôm nay chúng ta sẽ cùng khám phá các tính năng cốt lõi."}}
 `;
 
 /** 提示词是否包含 src/tr 回显协议约定（UI 用于提示自定义提示词用户更新，design D5） */

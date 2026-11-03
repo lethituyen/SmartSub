@@ -27,7 +27,7 @@ export default function SubtitlePreviewOverlay({
   const textStyle = subtitleStyleToCSS(style, scale);
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute inset-0 pointer-events-none z-[20]">
       <div style={containerStyle}>
         <span style={textStyle}>
           {subtitleTextRuns(text, style).map((run, index) => (

@@ -1,6 +1,5 @@
 import type { PendingTaskSubmission } from '../../types/taskSubmission';
 import { z } from 'zod';
-import type { PipelineComposeConfig } from '../../types';
 
 export interface TaskDraft {
   id?: string;
@@ -17,7 +16,6 @@ export interface TaskDraft {
   config?: Record<string, any>;
   pipeline?: {
     dubbing: Record<string, any>;
-    compose?: PipelineComposeConfig;
     subtitle: 'hard' | 'soft' | 'none';
     styleId: string;
     quality: string;
@@ -66,11 +64,6 @@ const draftSchema = z.object({
         })
         .passthrough(),
       subtitle: z.enum(['hard', 'soft', 'none']),
-      compose: z
-        .object({ subtitle: z.enum(['hard', 'soft', 'none']) })
-        .passthrough()
-        .transform((value) => value as PipelineComposeConfig)
-        .optional(),
       styleId: z.string(),
       quality: z.enum(['original', 'high', 'standard']),
       encoder: z.enum(['cpu', 'hardware']),

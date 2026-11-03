@@ -448,6 +448,7 @@
   "asrXiaomiMimoApiKeyTips": "在 <a href='https://mimo.mi.com/' style='color: blue'>MiMo 开放平台</a> 创建的 API Key。ASR 按音频时长计费，当前国内按量价格为 0.5 元/小时；是否有赠送额度请以控制台余额和用量为准。仅保存在本地。",
   "phXiaomiMimoApiKey": "sk-... 或 tp-...",
   "asrModelsXiaomiMimoTips": "模型固定为 mimo-v2.5-asr，仅支持中文、英文或自动识别。接口不返回词级或分段时间戳，妙幕会直接按静音切成约 20 秒的小段，生成粗粒度时间轴。",
+  "asrModelsJianyingTips": "剪映/抖音官方极速 ASR 服务（免费内置）：jianying-default 保持抖音短视频原生长短句切分，切句自然贴合语流；jianying-words 返回词级时间戳，由 SmartSub 重新按字数断句。",
   "asrApiUrlXiaomiMimoTips": "按量 API Key 使用 https://api.xiaomimimo.com/v1；Token Plan 的 tp- Key 必须填写控制台提供的专属 Base URL。可粘贴完整 /chat/completions 地址，应用会自动归一化。",
   "dubbingBlock": {
     "localModels": "本地配音模型",
@@ -473,7 +474,14 @@
     "testSuccess": "合成成功，连接正常",
     "cloneModelIntro": "零样本声音克隆模型（ZipVoice）：无内置音色——用你的录音在「我的音色」里创建克隆音色后即可配音。合成速度慢于普通模型。",
     "clonePool": "音色来自「我的音色」",
-    "goCreateVoice": "去创建克隆音色"
+    "goCreateVoice": "去创建克隆音色",
+    "downloadAllVoices": "批量下载全部越南语音色（共15个）",
+    "downloadSingleVoice": "下载此音色",
+    "vietnameseModelIntro": "Piper 越南语 TTS（VITS）：内置 15 个自然越南语音色（涵盖北/中/南口音），完全本地离线极速运行。",
+    "voiceList": "音色列表",
+    "previewVoice": "试听",
+    "previewFailed": "音色试听失败",
+    "deleteVoice": "删除音色"
   },
   "ttsApiUrlTips": "OpenAI 兼容 TTS 端点的 Base URL，例如 https://api.openai.com/v1",
   "ttsApiKeyTips": "该端点的 API Key",

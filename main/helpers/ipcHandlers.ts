@@ -9,13 +9,6 @@ import { wrapFileObject, ensureTempDir, getMd5 } from './fileUtils';
 import { CONTENT_TEMPLATES } from '../translate/constants';
 import { renderTemplate, getExtraResourcesPath } from './utils';
 import {
-  assertTaskRunEditable,
-  taskRunService,
-  beginTaskResultWrite,
-} from './taskRuns/access';
-import { digestValue } from './taskRuns/service';
-import { removeChineseSubtitlePunctuation } from './chineseConvert';
-import {
   detectSubtitleFormat,
   detectSubtitleFormatFromContent,
   parseSubtitleEntries,
@@ -32,7 +25,6 @@ import {
 import {
   prefixTextWithSpeakerNames,
   type SpeakerInfo,
-  type ProofreadDataMeta,
 } from '../../types/proofreadData';
 import { subtitleOutputFilesToSave } from '../../types/subtitleOutput';
 import { atomicReplaceTextFile } from './atomicFile';
@@ -49,6 +41,7 @@ import {
   readManuscriptFile,
   toManuscriptSelectionPayload,
 } from './manuscriptMatching';
+import { registerShortDramaHandlers } from './videoDownload/hongguo/ipcShortDramaHandlers';
 
 // 定义支持的文件扩展名常量
 export const MEDIA_EXTENSIONS = [
@@ -191,11 +184,6 @@ async function getMediaFilesFromDirectory(
   return files;
 }
 
-type DeliveryLayout = SubtitleLayoutOptions &
-  Pick<
-    ProofreadDataMeta,
-    'removeSourceChinesePunctuation' | 'removeTargetChinesePunctuation'
-  >;
 function buildSubtitleFileContent(
   filePath: string,
   subtitles: any[],
@@ -203,7 +191,7 @@ function buildSubtitleFileContent(
   speakerOptions?: {
     speakers?: SpeakerInfo[];
     embedSpeakerNames?: boolean;
-    layout?: DeliveryLayout;
+    layout?: SubtitleLayoutOptions;
   },
 ): string {
   const format = detectSubtitleFormat(filePath);
@@ -216,30 +204,24 @@ function buildSubtitleFileContent(
     );
   };
   const buildText = (subtitle): string => {
-    const sourceContent = speakerOptions?.layout?.removeSourceChinesePunctuation
-      ? removeChineseSubtitlePunctuation(subtitle.sourceContent ?? '')
-      : (subtitle.sourceContent ?? '');
-    const targetContent = speakerOptions?.layout?.removeTargetChinesePunctuation
-      ? removeChineseSubtitlePunctuation(subtitle.targetContent ?? '')
-      : (subtitle.targetContent ?? '');
     let text: string;
     if (speakerOptions?.layout?.subtitleLayout === 'two-line') {
       const prefix = withSpeakerPrefix(subtitle, '');
       return layoutSubtitleColumns(
-        sourceContent,
-        targetContent,
+        subtitle.sourceContent ?? '',
+        subtitle.targetContent ?? '',
         contentType,
         speakerOptions.layout,
         prefix ? `${prefix} ` : '',
       );
     } else if (contentType === 'source') {
-      text = sourceContent;
+      text = subtitle.sourceContent ?? '';
     } else {
       const template =
         CONTENT_TEMPLATES[contentType] || CONTENT_TEMPLATES.onlyTranslate;
       text = renderTemplate(template, {
-        sourceContent,
-        targetContent,
+        sourceContent: subtitle.sourceContent ?? '',
+        targetContent: subtitle.targetContent ?? '',
       }).replace(/\n+$/, '');
     }
     return withSpeakerPrefix(subtitle, text);
@@ -288,7 +270,7 @@ async function writeSubtitleFile(
   speakerOptions?: {
     speakers?: SpeakerInfo[];
     embedSpeakerNames?: boolean;
-    layout?: DeliveryLayout;
+    layout?: SubtitleLayoutOptions;
   },
 ): Promise<void> {
   const content = buildSubtitleFileContent(
@@ -443,6 +425,20 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
     return dest;
   });
 
+  // 获取默认 YeahooSub 水印 Logo 文件路径
+  ipcMain.handle('getDefaultWatermarkPath', async () => {
+    const candidates = [
+      path.join(process.cwd(), 'resources', 'yeahoosub_logo.png'),
+      path.join(app.getAppPath(), 'resources', 'yeahoosub_logo.png'),
+      path.join(process.resourcesPath || '', 'yeahoosub_logo.png'),
+      path.join(process.resourcesPath || '', 'extraResources', 'yeahoosub_logo.png'),
+    ];
+    for (const c of candidates) {
+      if (fs.existsSync(c)) return c;
+    }
+    return candidates[0];
+  });
+
   ipcMain.handle('getDroppedFiles', async (event, { files, taskType }) => {
     // 处理文件和文件夹
     const allValidPaths: string[] = [];
@@ -570,7 +566,6 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
     'saveSubtitleFile',
     async (event, { filePath, subtitles, contentType = 'source' }) => {
       try {
-        assertTaskRunEditable({ path: filePath });
         await writeSubtitleFile(filePath, subtitles, contentType);
         return { success: true };
       } catch (error) {
@@ -600,15 +595,12 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
         outputs: { filePath?: string; contentType?: string }[];
       },
     ) => {
-      let finishWrite: (() => void) | undefined;
       try {
         if (!proofreadDataFile || !fs.existsSync(proofreadDataFile)) {
           throw new Error(
             `Proofread data file not found: ${proofreadDataFile}`,
           );
         }
-        assertTaskRunEditable({ path: proofreadDataFile });
-        finishWrite = beginTaskResultWrite(proofreadDataFile);
 
         const updated = await updateProofreadDataFromSubtitles(
           proofreadDataFile,
@@ -636,7 +628,6 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
         ]) {
           const filePath = output?.filePath;
           if (!filePath) continue;
-          assertTaskRunEditable({ path: filePath });
           const key = path.resolve(filePath).toLowerCase();
           if (rendered.has(key)) continue;
           rendered.add(key);
@@ -685,24 +676,6 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
             return file;
           });
           if (matched) {
-            const run = taskRunService()?.get(item.id);
-            if (run) {
-              const file = run.files.find(
-                (file) =>
-                  file.projection.proofreadDataFile &&
-                  path.resolve(file.projection.proofreadDataFile) ===
-                    path.resolve(proofreadDataFile),
-              );
-              if (!file) throw new Error('TASK_FILE_NOT_FOUND');
-              taskRunService()!.recordProofreadEdit({
-                projectId: item.id,
-                runId: run.runId,
-                fileId: file.fileId,
-                digest: digestValue(updated),
-                translationFailures,
-              });
-              break;
-            }
             saveWorkItem(
               { ...item, pipelineFiles, updatedAt: Date.now() },
               { durable: true },
@@ -717,8 +690,6 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
         return {
           error: `保存校对中间态错误: ${error.message}`,
         };
-      } finally {
-        finishWrite?.();
       }
     },
   );
@@ -764,7 +735,10 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
     'selectFile',
     async (
       event,
-      options: { type: 'video' | 'subtitle' | 'audio' | 'any'; title?: string },
+      options: {
+        type: 'video' | 'subtitle' | 'audio' | 'image' | 'any';
+        title?: string;
+      },
     ) => {
       const { type, title } = options;
 
@@ -789,6 +763,13 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
           {
             name: 'Audio Files',
             extensions: ['wav', 'mp3', 'm4a', 'aac', 'flac', 'ogg', 'opus'],
+          },
+        ];
+      } else if (type === 'image') {
+        filters = [
+          {
+            name: 'Image Files',
+            extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'svg'],
           },
         ];
       }
@@ -882,4 +863,77 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
       };
     },
   );
+
+  // Nhận diện chữ viết tay tiếng Trung qua Google Input Tools API
+  ipcMain.handle(
+    'handwriting:recognize',
+    async (
+      _event,
+      payload: {
+        ink: number[][][];
+        language?: string;
+        width?: number;
+        height?: number;
+      },
+    ) => {
+      try {
+        const { ink, language = 'zh_CN', width = 300, height = 300 } = payload;
+        if (!ink || !ink.length) {
+          return { success: true, candidates: [] };
+        }
+
+        const itc =
+          language === 'zh_TW'
+            ? 'zh-hant-t-i0-handwrit'
+            : 'zh-t-i0-handwrit';
+        const url = `https://inputtools.google.com/request?itc=${itc}&app=translate`;
+        const body = {
+          app_version: 0.4,
+          api_level: '537.36',
+          device: '5',
+          input_type: '0',
+          options: 'enable_pre_space',
+          requests: [
+            {
+              writing_guide: {
+                writing_area_width: width,
+                writing_area_height: height,
+              },
+              pre_context: '',
+              max_num_results: 12,
+              max_completions: 0,
+              language: language === 'zh_TW' ? 'zh_TW' : 'zh_CN',
+              ink,
+            },
+          ],
+        };
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+
+        const data = (await response.json()) as any;
+        if (
+          Array.isArray(data) &&
+          data[0] === 'SUCCESS' &&
+          Array.isArray(data[1]?.[0]?.[1])
+        ) {
+          return { success: true, candidates: data[1][0][1] as string[] };
+        }
+        return { success: true, candidates: [] };
+      } catch (error) {
+        logMessage(`handwriting recognition error: ${error}`, 'warning');
+        return { success: false, candidates: [], error: String(error) };
+      }
+    },
+  );
+
+  registerShortDramaHandlers(mainWindow);
 }

@@ -1,0 +1,121 @@
+{
+  "scope": {
+    "project": "Chỉ dự án hiện tại",
+    "global": "Toàn cục"
+  },
+  "list": {
+    "title": "Thuật ngữ",
+    "priorityHint": "Ưu tiên từ trên xuống dưới",
+    "toggleAria": "Bật hoặc tắt từ điển「{{name}}」",
+    "entryCount": "{{count}} mục"
+  },
+  "status": {
+    "enabled": "Đã bật",
+    "disabled": "Đã tắt"
+  },
+  "actions": {
+    "addGlossary": "Tạo từ điển mới",
+    "editGlossary": "Chỉnh sửa từ điển",
+    "deleteGlossary": "Xóa từ điển",
+    "moveUp": "Tăng độ ưu tiên",
+    "moveDown": "Giảm độ ưu tiên",
+    "backToList": "Quay lại danh sách từ điển",
+    "addEntry": "Thêm từ mới",
+    "editEntry": "Sửa mục từ",
+    "deleteEntry": "Xóa mục từ",
+    "import": "Nhập tệp",
+    "export": "Xuất tệp",
+    "exportCsv": "Xuất CSV",
+    "exportTxt": "Xuất TXT",
+    "downloadCsvTemplate": "Tải tệp mẫu CSV",
+    "cancel": "Hủy bỏ",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "delete": "Xóa"
+  },
+  "empty": {
+    "noGlossaries": "Chưa có từ điển nào",
+    "noGlossariesHint": "Tạo các bộ từ điển riêng theo bộ phim hoặc chuyên ngành, khi cần thì gạt nút bật.",
+    "selectGlossary": "Chọn một từ điển",
+    "selectGlossaryHint": "Thuật ngữ theo dự án chỉ có hiệu lực trong dự án đó, thuật ngữ toàn cục có hiệu lực cho mọi dự án.",
+    "noEntries": "Từ điển này chưa có mục từ nào",
+    "noEntriesHint": "Thêm mục từ mới hoặc nhập hàng loạt từ tệp CSV / TXT.",
+    "noSearchResults": "Không tìm thấy mục từ phù hợp",
+    "noSearchResultsHint": "Có thể tìm theo từ gốc, bản dịch chuẩn hoặc ghi chú."
+  },
+  "format": {
+    "templateHint": "Các cột mẫu gồm: source (từ gốc), target (bản dịch), note (ghi chú tùy chọn); khuyến nghị dùng CSV để giữ nguyên vẹn định dạng.",
+    "txtExportHint": "Định dạng TXT sẽ thay thế dấu xuống dòng và dấu Tab bằng dấu cách; nếu cần độ chính xác cao vui lòng dùng CSV."
+  },
+  "aiGuide": {
+    "title": "Dịch AI sẽ tự động áp dụng các từ điển đang bật",
+    "description": "Mỗi đợt dịch AI/LLM chỉ gửi kèm các từ vựng khớp trong dự án và từ điển toàn cục. Thuật ngữ dự án được ưu tiên hơn toàn cục; trong cùng phạm vi, mục từ nằm phía trên sẽ được ưu tiên, các trường hợp xung đột sẽ được ghi vào nhật ký."
+  },
+  "traditionalGuide": {
+    "title": "Với dịch máy truyền thống, vui lòng cấu hình thuật ngữ trên Console của nhà cung cấp",
+    "description": "Từ điển trong ứng dụng không can thiệp được kết quả của các cổng dịch máy truyền thống (Baidu, Aliyun, Volcengine, Tencent); nếu dịch vụ có hỗ trợ từ điển thuật ngữ, vui lòng cấu hình trên trang quản lý của họ.",
+    "providers": {
+      "baidu": "Baidu Translate",
+      "aliyun": "Alibaba Cloud",
+      "volc": "Volcengine",
+      "tencent": "Tencent Cloud"
+    }
+  },
+  "search": {
+    "placeholder": "Tìm kiếm từ gốc, bản dịch hoặc ghi chú",
+    "resultCount": "Tìm thấy {{count}} mục"
+  },
+  "fields": {
+    "source": "Từ gốc",
+    "target": "Bản dịch chuẩn",
+    "note": "Ghi chú",
+    "actions": "Thao tác"
+  },
+  "glossaryDialog": {
+    "addTitle": "Tạo từ điển mới",
+    "editTitle": "Chỉnh sửa từ điển",
+    "description": "Thứ tự từ điển quyết định mức độ ưu tiên khi có từ gốc bị trùng lặp.",
+    "name": "Tên từ điển",
+    "namePlaceholder": "Ví dụ: Tên nhân vật Phần 1",
+    "descriptionLabel": "Mô tả (tùy chọn)",
+    "descriptionPlaceholder": "Ghi chú phạm vi phim, lĩnh vực chuyên ngành hoặc quy ước sử dụng"
+  },
+  "entryDialog": {
+    "addTitle": "Thêm mục từ",
+    "editTitle": "Chỉnh sửa mục từ",
+    "description": "Nhập văn bản thuần túy, không cần Regex. Các từ ký tự Latinh sẽ tự động so khớp theo ranh giới từ để tránh nhầm chuỗi con.",
+    "sourcePlaceholder": "Ví dụ: Alice, C++, Dr. Smith",
+    "targetPlaceholder": "Ví dụ: Alice, Bác sĩ Smith",
+    "notePlaceholder": "Nhân vật, ngữ cảnh hoặc ghi chú khác (tùy chọn)"
+  },
+  "deleteGlossary": {
+    "title": "Xóa toàn bộ từ điển này?",
+    "description": "Từ điển「{{name}}」cùng với {{count}} mục từ bên trong sẽ bị xóa vĩnh viễn."
+  },
+  "deleteEntry": {
+    "title": "Xóa mục từ này?",
+    "description": "Từ gốc「{{source}}」sẽ bị xóa khỏi từ điển hiện tại."
+  },
+  "toasts": {
+    "glossaryCreated": "Đã tạo từ điển thành công",
+    "glossaryUpdated": "Đã cập nhật từ điển",
+    "glossaryDeleted": "Đã xóa từ điển",
+    "entryCreated": "Đã thêm mục từ",
+    "entryUpdated": "Đã cập nhật mục từ",
+    "entryDeleted": "Đã xóa mục từ",
+    "imported": "Nhập hoàn tất: Thêm mới {{added}}, cập nhật {{updated}}, bỏ qua {{skipped}}",
+    "exported": "Đã xuất từ điển",
+    "templateExported": "Đã xuất tệp mẫu CSV"
+  },
+  "errors": {
+    "GLOSSARY_NAME_REQUIRED": "Vui lòng nhập tên từ điển",
+    "DUPLICATE_GLOSSARY_NAME": "Tên từ điển đã tồn tại",
+    "GLOSSARY_NOT_FOUND": "Từ điển không tồn tại hoặc đã bị xóa",
+    "ENTRY_SOURCE_REQUIRED": "Vui lòng nhập từ gốc",
+    "ENTRY_TARGET_REQUIRED": "Vui lòng nhập bản dịch chuẩn",
+    "DUPLICATE_ENTRY_SOURCE": "Từ gốc này đã tồn tại trong từ điển hiện tại",
+    "UNSUPPORTED_FILE_TYPE": "Chỉ hỗ trợ tệp định dạng CSV hoặc TXT",
+    "NO_VALID_ENTRIES": "Trong tệp không có mục từ hợp lệ nào để nhập",
+    "generic": "Thao tác thất bại, vui lòng kiểm tra nhật ký rồi thử lại"
+  }
+}

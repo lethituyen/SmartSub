@@ -8,6 +8,9 @@ import {
   Languages,
   Minimize2,
   Film,
+  ScanText,
+  Sparkles,
+  DownloadCloud,
   type LucideIcon,
 } from 'lucide-react';
 import type { ToolboxToolManifest, ToolboxToolId } from '../../../types/toolbox';
@@ -60,6 +63,16 @@ export const TOOL_REGISTRY: ToolRegistryItem[] = [
     phase: 2,
   },
   {
+    id: 'video-ocr-subtitles',
+    nameKey: 'tools.video-ocr-subtitles.name',
+    descKey: 'tools.video-ocr-subtitles.desc',
+    category: 'subtitles',
+    icon: 'ScanText',
+    iconComponent: ScanText,
+    badgeKey: 'badges.aiOcr',
+    phase: 2,
+  },
+  {
     id: 'subtitle-sync',
     nameKey: 'tools.subtitle-sync.name',
     descKey: 'tools.subtitle-sync.desc',
@@ -96,6 +109,26 @@ export const TOOL_REGISTRY: ToolRegistryItem[] = [
     icon: 'Film',
     iconComponent: Film,
     phase: 3,
+  },
+  {
+    id: 'video-remaker',
+    nameKey: 'tools.video-remaker.name',
+    descKey: 'tools.video-remaker.desc',
+    category: 'video',
+    icon: 'Sparkles',
+    iconComponent: Sparkles,
+    badgeKey: 'badges.antiDuplicate',
+    phase: 1,
+  },
+  {
+    id: 'video-downloader',
+    nameKey: 'tools.video-downloader.name',
+    descKey: 'tools.video-downloader.desc',
+    category: 'video',
+    icon: 'DownloadCloud',
+    iconComponent: DownloadCloud,
+    badgeKey: 'badges.fastDownload',
+    phase: 1,
   },
 ];
 

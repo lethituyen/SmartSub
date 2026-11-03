@@ -71,8 +71,7 @@ let cachedResult: AddonLoadResult | null = null;
 let cachedKey: string | null = null;
 const notifiedFallbackReasons = new Set<string>();
 let fallbackNotifier: ((event: AddonFallbackEvent) => void) | null = null;
-let loadResultNotifier: ((info: AddonLoadResultInfo | null) => void) | null =
-  null;
+let loadResultNotifier: ((info: AddonLoadResultInfo) => void) | null = null;
 
 export function setFallbackNotifier(
   fn: (event: AddonFallbackEvent) => void,
@@ -81,7 +80,7 @@ export function setFallbackNotifier(
 }
 
 export function setLoadResultNotifier(
-  fn: ((info: AddonLoadResultInfo | null) => void) | null,
+  fn: (info: AddonLoadResultInfo) => void,
 ): void {
   loadResultNotifier = fn;
 }
@@ -89,8 +88,6 @@ export function setLoadResultNotifier(
 export function clearAddonLoadCache(): void {
   cachedResult = null;
   cachedKey = null;
-  // 安装/切换后需要新一次实际加载；旧结果仍保留在 store 供诊断使用。
-  loadResultNotifier?.(null);
 }
 
 function builtinAddonPath(file: string): string {
@@ -502,12 +499,12 @@ export async function loadBestAddon(
 }
 
 /**
- * 当前会话实际加载的后端。持久化结果只供诊断，不能代表当前环境。
+ * 当前生效的后端（无内存缓存时回退到持久化的最近一次结果）
  */
 export function getActiveBackend(): AddonLoadResultInfo | null {
   if (cachedResult) {
     const { whisperAsync: _fn, ...info } = cachedResult;
     return info;
   }
-  return null;
+  return store.get('lastAddonLoadResult') || null;
 }

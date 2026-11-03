@@ -251,9 +251,17 @@ export function detectLanguagePair(
       };
     }
 
-    // 回退启发式：英语作为源语言，中文作为目标语言
+    // 回退启发式：英语作为源语言，越南语/中文作为目标语言
     const enIndex = languages.findIndex((l) => l.lang.code === 'en');
+    const viIndex = languages.findIndex((l) => l.lang.code === 'vi');
     const zhIndex = languages.findIndex((l) => l.lang.code === 'zh');
+
+    if (enIndex >= 0 && viIndex >= 0) {
+      return {
+        source: 'en',
+        target: 'vi',
+      };
+    }
 
     if (enIndex >= 0 && zhIndex >= 0) {
       return {

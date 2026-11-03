@@ -14,11 +14,15 @@ import type {
   VideoInfo,
   MergeProgress,
   MergeStatus,
+  BlurSubtitleConfig,
+  WatermarkConfig,
 } from '../../../types/subtitleMerge';
 import SubtitlePreviewOverlay from './SubtitlePreviewOverlay';
 import { LIBASS_SRT_PLAYRES_Y, formatDuration } from './utils/styleUtils';
 import { useJassubPreview } from './hooks/useJassubPreview';
 import SubtitleCanvas from './SubtitleCanvas';
+import BlurMaskCanvas from './BlurMaskCanvas';
+import WatermarkCanvas from './WatermarkCanvas';
 import FontFallbackNotice from './FontFallbackNotice';
 import type { SubtitleSafeArea } from '../../../types/subtitleCanvas';
 import {
@@ -39,6 +43,10 @@ interface VideoPreviewProps {
   videoInfo: VideoInfo | null;
   style: SubtitleStyle;
   subtitlePath?: string | null;
+  blurOldSubtitles?: BlurSubtitleConfig;
+  onUpdateBlurOldSubtitles?: (update: Partial<BlurSubtitleConfig>) => void;
+  watermark?: WatermarkConfig;
+  onUpdateWatermark?: (update: Partial<WatermarkConfig>) => void;
   sampleText?: string;
   /** 合成进度（用于处理中/错误浮层） */
   progress?: MergeProgress;
@@ -96,6 +104,10 @@ export default function VideoPreview({
   videoInfo,
   style,
   subtitlePath = null,
+  blurOldSubtitles,
+  onUpdateBlurOldSubtitles,
+  watermark,
+  onUpdateWatermark,
   sampleText = '字幕预览效果',
   progress,
   status = 'idle',
@@ -126,6 +138,10 @@ export default function VideoPreview({
   } | null>(null);
   // 底层 <video> 元素（ReactPlayer onReady 后可取），供 JASSUB 预览引擎挂载
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  // 新字幕挂载容器，保证新字幕层级严格高于模糊遮挡层
+  const [subtitleLayerEl, setSubtitleLayerEl] = useState<HTMLDivElement | null>(
+    null,
+  );
   // 预览框尺寸：按可视区宽高拟合最大矩形，保证完整可见且不撑出滚动条
   const [box, setBox] = useState<{ width: number; height: number }>({
     width: 0,
@@ -139,6 +155,8 @@ export default function VideoPreview({
       : videoInfo && videoInfo.width > 0 && videoInfo.height > 0
         ? videoInfo.width / videoInfo.height
         : 16 / 9;
+
+  const isVertical = Boolean(aspect < 1);
 
   useEffect(() => {
     setVideoEl(null);
@@ -223,6 +241,7 @@ export default function VideoPreview({
   // 引擎就绪前/初始化失败时回退下方 CSS 模拟叠加层。
   const jassub = useJassubPreview({
     videoEl,
+    containerEl: subtitleLayerEl,
     subtitlePath,
     sampleText,
     style: previewStyle,
@@ -450,18 +469,6 @@ export default function VideoPreview({
                   progressInterval={100}
                   style={{ position: 'absolute', top: 0, left: 0 }}
                 />
-
-                {/* CSS 模拟字幕叠加层（降级方案）：仅在 JASSUB 引擎未接管时显示。
-                  scale=盒高/333：让预览字号随预览框大小等比缩放，≈烧录后字号 */}
-                {!jassub.active && !previewError && overlayText !== null && (
-                  <SubtitlePreviewOverlay
-                    style={previewStyle}
-                    text={overlayText}
-                    scale={
-                      box.height > 0 ? box.height / LIBASS_SRT_PLAYRES_Y : 1
-                    }
-                  />
-                )}
               </>
             ) : (
               <div className="text-muted-foreground text-center">
@@ -470,6 +477,49 @@ export default function VideoPreview({
             )}
           </div>
 
+          {/* Layer 1: 原字幕模糊遮挡层 (z-[10]) */}
+          {videoPath && (
+            <BlurMaskCanvas
+              config={blurOldSubtitles}
+              width={box.width}
+              height={box.height}
+              isVertical={isVertical}
+              disabled={isProcessing}
+              onUpdate={onUpdateBlurOldSubtitles}
+            />
+          )}
+
+          {/* Layer 2: 新字幕渲染层 (z-[20]) - 严格位于模糊层之上，不受模糊遮挡影响 */}
+          {videoPath && (
+            <div
+              ref={setSubtitleLayerEl}
+              className="pointer-events-none absolute inset-0 z-[20] overflow-hidden"
+              data-subtitle-layer
+            >
+              {!jassub.active && !previewError && overlayText !== null && (
+                <SubtitlePreviewOverlay
+                  style={previewStyle}
+                  text={overlayText}
+                  scale={
+                    box.height > 0 ? box.height / LIBASS_SRT_PLAYRES_Y : 1
+                  }
+                />
+              )}
+            </div>
+          )}
+
+          {/* Layer 2.5: 水印/Logo 叠层 (z-[25]) */}
+          {videoPath && watermark?.enabled && (
+            <WatermarkCanvas
+              config={watermark}
+              width={box.width}
+              height={box.height}
+              disabled={isProcessing}
+              onUpdate={onUpdateWatermark}
+            />
+          )}
+
+          {/* Layer 3: 字幕拖拽交互层 (z-[30]) */}
           {videoPath && onUpdateStyle && (
             <SubtitleCanvas
               style={style}
@@ -487,7 +537,7 @@ export default function VideoPreview({
 
           {/* 处理中浮层：不撑高布局，居中半透明面板 + 进度 + 取消 */}
           {isProcessing && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/55 backdrop-blur-sm">
+            <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-black/55 backdrop-blur-sm">
               <Loader2 className="h-8 w-8 animate-spin text-white" />
               <div className="w-2/3 max-w-xs space-y-1.5">
                 <div className="flex items-center justify-between text-xs text-white/90">

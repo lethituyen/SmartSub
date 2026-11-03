@@ -15,13 +15,12 @@ const typeDef = {
   hasTranslate: true,
 } as any;
 
-const renderControl = (formData: Record<string, unknown>, compact = false) =>
+const renderControl = (formData: Record<string, unknown>) =>
   render(
     <OutputFormatControl
       form={{ setValue: jest.fn() }}
       formData={formData}
       typeDef={typeDef}
-      compact={compact}
     />,
   );
 
@@ -43,19 +42,6 @@ describe('the output style summary', () => {
     renderControl({ translateContent });
     expect(trigger()).toHaveTextContent(label);
   });
-
-  test.each([
-    ['onlyTranslate', 'outputTranslationOnly', 'outputTranslationOnly'],
-    ['sourceAndTranslate', 'outputBilingual', 'outputSourceFirst'],
-    ['translateAndSource', 'outputBilingual', 'outputTranslationFirst'],
-  ])(
-    'keeps the full %s ordering in the compact summary tooltip',
-    (translateContent, shortLabel, fullLabel) => {
-      renderControl({ translateContent, subtitleOutputFormats: ['srt'] }, true);
-      expect(trigger()).toHaveTextContent(`${shortLabel} · SRT`);
-      expect(trigger()).toHaveAttribute('title', `${fullLabel} · SRT`);
-    },
-  );
 
   // Opening the popover is by far the slowest thing in this file (jsdom selector matching
   // across Radix's portal), so everything that needs it open is asserted in this one test.

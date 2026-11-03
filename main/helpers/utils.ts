@@ -164,9 +164,12 @@ export const isAppleSilicon = () => {
 export const getExtraResourcesPath = () => {
   // A production renderer can also run from `nextron build --no-pack`.
   // Only packaged apps have resources copied into Electron's Resources folder.
+  if (!app) {
+    return path.join(process.cwd(), 'extraResources');
+  }
   return app.isPackaged
     ? path.join(process.resourcesPath, 'extraResources')
-    : path.join(app.getAppPath(), 'extraResources');
+    : path.join(app.getAppPath ? app.getAppPath() : process.cwd(), 'extraResources');
 };
 
 export function runCommand(command, args, onProcess = undefined) {
@@ -222,7 +225,7 @@ function throttle(func, limit) {
 
 export const defaultUserConfig = {
   sourceLanguage: 'en',
-  targetLanguage: 'zh',
+  targetLanguage: 'vi',
   customTargetSrtFileName: '${fileName}.${targetLanguage}',
   customSourceSrtFileName: '${fileName}.${sourceLanguage}',
   // 逐任务引擎：任务携带引擎，后端按此解析执行（缺省 builtin，任务页默认逻辑会按"上次使用"细化）

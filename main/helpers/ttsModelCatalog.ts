@@ -8,10 +8,13 @@ import type { TtsModelRequest } from './sherpaOnnx/ttsRuntime';
 /** TTS 模型根目录：单独覆盖 > 统一存储目录 > userData/models/tts */
 export function getTtsModelsRoot(): string {
   const { store } = require('./store') as typeof import('./store');
+  const userData = app?.getPath
+    ? app.getPath('userData')
+    : path.join(process.cwd(), 'node_modules', '.cache', 'models');
   const root = resolveModelRoot(
     'tts',
-    store.get('settings'),
-    app.getPath('userData'),
+    store?.get ? store.get('settings') : {},
+    userData,
   ).path;
   if (!fs.existsSync(root)) fs.mkdirSync(root, { recursive: true });
   return root;
@@ -21,7 +24,9 @@ export function getTtsModelsRoot(): string {
 export type TtsModelId =
   | 'kokoro-multi-lang-v1_1'
   | 'vits-zh-aishell3'
-  | 'zipvoice-distill-zh-en';
+  | 'zipvoice-distill-zh-en'
+  | 'piper-vietnamese'
+  | 'vieneu-vietnamese';
 
 export const TTS_DEFAULT_MODEL_ID: TtsModelId = 'kokoro-multi-lang-v1_1';
 
@@ -47,7 +52,7 @@ export interface TtsVoice {
   label: string;
   /** 英文展示名。 */
   labelEn: string;
-  lang: 'zh' | 'en';
+  lang: 'zh' | 'en' | 'vi';
   gender?: 'f' | 'm';
 }
 
@@ -263,6 +268,90 @@ export const TTS_MODELS: Record<TtsModelId, TtsModelSpec> = {
       numThreads,
     }),
   },
+  'piper-vietnamese': {
+    id: 'piper-vietnamese',
+    dirName: 'piper-vietnamese',
+    displayName: 'Piper Tiếng Việt (VITS)',
+    languages: ['vi'],
+    approxInstallBytes: 960_000_000,
+    releasePath: '',
+    archiveName: '',
+    archiveInnerDir: '',
+    requiredFiles: [],
+    sampleRate: 22050,
+    defaultVoiceId: 'banmai',
+    voices: [
+      { id: 'banmai', sid: 0, label: 'Ban Mai (Nữ - Bắc, chuẩn)', labelEn: 'Ban Mai (Female - North, standard)', lang: 'vi', gender: 'f' },
+      { id: 'manhdung', sid: 1, label: 'Mạnh Dũng (Nam - Bắc, trầm ấm)', labelEn: 'Manh Dung (Male - North, deep)', lang: 'vi', gender: 'm' },
+      { id: 'chieuthanh', sid: 2, label: 'Chiêu Thanh (Nam - Nam)', labelEn: 'Chieu Thanh (Male - South)', lang: 'vi', gender: 'm' },
+      { id: 'ngocngan3701', sid: 3, label: 'Nguyễn Ngọc Ngạn (Nam - Truyền cảm)', labelEn: 'Ngoc Ngan (Male - Storyteller)', lang: 'vi', gender: 'm' },
+      { id: 'minhquang', sid: 4, label: 'Minh Quang (Nam - Bắc, tin tức)', labelEn: 'Minh Quang (Male - North, news)', lang: 'vi', gender: 'm' },
+      { id: 'minhkhang', sid: 5, label: 'Minh Khang (Nam - Nam, trẻ trung)', labelEn: 'Minh Khang (Male - South, young)', lang: 'vi', gender: 'm' },
+      { id: 'maiphuong', sid: 6, label: 'Mai Phương (Nữ - Bắc, nhẹ nhàng)', labelEn: 'Mai Phuong (Female - North, gentle)', lang: 'vi', gender: 'f' },
+      { id: 'ngochuyen', sid: 7, label: 'Ngọc Huyền (Nữ - Truyền cảm)', labelEn: 'Ngoc Huyen (Female - Expressive)', lang: 'vi', gender: 'f' },
+      { id: 'phuongtrang', sid: 8, label: 'Phương Trang (Nữ - Nam)', labelEn: 'Phuong Trang (Female - South)', lang: 'vi', gender: 'f' },
+      { id: 'thanhphuong2', sid: 9, label: 'Thanh Phương (Nữ - Nam)', labelEn: 'Thanh Phuong (Female - South)', lang: 'vi', gender: 'f' },
+      { id: 'thientam', sid: 10, label: 'Thiện Tâm (Nam - Trầm ấm, radio)', labelEn: 'Thien Tam (Male - Warm, radio)', lang: 'vi', gender: 'm' },
+      { id: 'taian4', sid: 11, label: 'Tài An (Nam - Trẻ trung)', labelEn: 'Tai An (Male - Young)', lang: 'vi', gender: 'm' },
+      { id: 'vi_VN-vais1000-medium', sid: 12, label: 'Vais1000 Chuẩn (Nữ - Bắc)', labelEn: 'Vais1000 Standard (Female - North)', lang: 'vi', gender: 'f' },
+      { id: 'lacphi', sid: 13, label: 'Lạc Phi (Nam)', labelEn: 'Lac Phi (Male)', lang: 'vi', gender: 'm' },
+      { id: 'duyoryx3175', sid: 14, label: 'Duy Oryx (Nam)', labelEn: 'Duy Oryx (Male)', lang: 'vi', gender: 'm' },
+    ],
+    buildModelRequest: () => {
+      throw new Error('Piper uses native executable, not Sherpa worker request');
+    },
+  },
+  'vieneu-vietnamese': {
+    id: 'vieneu-vietnamese',
+    dirName: 'vieneu-vietnamese',
+    displayName: 'VieNeu-TTS v3 Turbo (Native C++ 48kHz Studio Quality)',
+    languages: ['vi'],
+    approxInstallBytes: 520_000_000,
+    releasePath: '',
+    archiveName: '',
+    archiveInnerDir: '',
+    requiredFiles: [
+      'config.json',
+      'tokenizer.json',
+    ],
+    sampleRate: 48000,
+    defaultVoiceId: 'minh_quan_pro',
+    voices: [
+      // Miền Bắc
+      { id: 'minh_quan_pro', sid: 0, label: '⭐ Minh Quân Pro (Nam - Miền Bắc, tự nhiên)', labelEn: 'Minh Quan Pro (Male - North, natural)', lang: 'vi', gender: 'm' },
+      { id: 'adam_bua', sid: 1, label: '⭐ Adam bựa (Nam - Miền Bắc, hài hước)', labelEn: 'Adam Bua (Male - North, humorous)', lang: 'vi', gender: 'm' },
+      { id: 'truc_ly', sid: 2, label: '⭐ Trúc Ly (Nữ - Miền Bắc, tự nhiên)', labelEn: 'Truc Ly (Female - North, natural)', lang: 'vi', gender: 'f' },
+      { id: 'anh_khoi', sid: 3, label: '⭐ Anh Khôi (Nam - Miền Bắc, kể chuyện)', labelEn: 'Anh Khoi (Male - North, storytelling)', lang: 'vi', gender: 'm' },
+      { id: 'mai_anh', sid: 4, label: '⭐ Mai Anh (Nữ - Miền Bắc, tin tức)', labelEn: 'Mai Anh (Female - North, news)', lang: 'vi', gender: 'f' },
+      { id: 'thien_tam_duc', sid: 5, label: '⭐ Thiền Tâm Đức (Nam - Miền Bắc, kể chuyện)', labelEn: 'Thien Tam Duc (Male - North, storytelling)', lang: 'vi', gender: 'm' },
+      { id: 'ngoc_huyen', sid: 6, label: '⭐ Ngọc Huyền (Nữ - Miền Bắc, tự nhiên)', labelEn: 'Ngoc Huyen (Female - North, natural)', lang: 'vi', gender: 'f' },
+      { id: 'minh_duc', sid: 7, label: 'Minh Đức (Nam - Miền Bắc, tin tức)', labelEn: 'Minh Duc (Male - North, news)', lang: 'vi', gender: 'm' },
+      { id: 'pham_tuyen', sid: 8, label: 'Phạm Tuyên (Nam - Miền Bắc, tự nhiên)', labelEn: 'Pham Tuyen (Male - North, natural)', lang: 'vi', gender: 'm' },
+      { id: 'xuan_vinh', sid: 9, label: 'Xuân Vĩnh (Nam - Miền Bắc, tự nhiên)', labelEn: 'Xuan Vinh (Male - North, natural)', lang: 'vi', gender: 'm' },
+      { id: 'thanh_binh', sid: 10, label: 'Thanh Bình (Nam - Miền Bắc, kể chuyện)', labelEn: 'Thanh Binh (Male - North, storytelling)', lang: 'vi', gender: 'm' },
+      { id: 'ngoc_linh', sid: 11, label: 'Ngọc Linh (Nữ - Miền Bắc, kể chuyện)', labelEn: 'Ngoc Linh (Female - North, storytelling)', lang: 'vi', gender: 'f' },
+      { id: 'doan_trang', sid: 12, label: 'Đoan Trang (Nữ - Miền Bắc, tự nhiên)', labelEn: 'Doan Trang (Female - North, natural)', lang: 'vi', gender: 'f' },
+      { id: 'quynh_anh', sid: 13, label: 'Quỳnh Anh (Nữ - Miền Bắc, đọc truyện)', labelEn: 'Quynh Anh (Female - North, audiobook)', lang: 'vi', gender: 'f' },
+      { id: 'manh_dung', sid: 14, label: 'Mạnh Dũng (Nam - Miền Bắc, tự nhiên)', labelEn: 'Manh Dung (Male - North, natural)', lang: 'vi', gender: 'm' },
+
+      // Miền Trung
+      { id: 'quang_son', sid: 15, label: '⭐ Quang Sơn (Nam - Miền Trung, tự nhiên)', labelEn: 'Quang Son (Male - Central, natural)', lang: 'vi', gender: 'm' },
+      { id: 'ngoc_tran', sid: 16, label: '⭐ Ngọc Trân (Nữ - Miền Trung, tự nhiên)', labelEn: 'Ngoc Tran (Female - Central, natural)', lang: 'vi', gender: 'f' },
+
+      // Miền Nam
+      { id: 'thuy_dung', sid: 17, label: '⭐ Thùy Dung (Nữ - Miền Nam, tin tức)', labelEn: 'Thuy Dung (Female - South, news)', lang: 'vi', gender: 'f' },
+      { id: 'thai_son', sid: 18, label: 'Thái Sơn (Nam - Miền Nam, kể chuyện)', labelEn: 'Thai Son (Male - South, storytelling)', lang: 'vi', gender: 'm' },
+      { id: 'thuc_doan', sid: 19, label: 'Thục Đoan (Nữ - Miền Nam, kể chuyện)', labelEn: 'Thuc Doan (Female - South, storytelling)', lang: 'vi', gender: 'f' },
+      { id: 'minh_triet', sid: 20, label: 'Minh Triết (Nam - Miền Nam, tin tức)', labelEn: 'Minh Triet (Male - South, news)', lang: 'vi', gender: 'm' },
+      { id: 'my_duyen', sid: 21, label: 'Mỹ Duyên (Nữ - Miền Nam, đọc truyện)', labelEn: 'My Duyen (Female - South, audiobook)', lang: 'vi', gender: 'f' },
+      { id: 'duc_tri', sid: 22, label: 'Đức Trí (Nam - Miền Nam, đọc truyện)', labelEn: 'Duc Tri (Male - South, audiobook)', lang: 'vi', gender: 'm' },
+      { id: 'kim_thanh', sid: 23, label: 'Kim Thanh (Nữ - Miền Nam, đọc truyện)', labelEn: 'Kim Thanh (Female - South, audiobook)', lang: 'vi', gender: 'f' },
+      { id: 'adam', sid: 24, label: 'Adam (Nam - Miền Nam, tự nhiên)', labelEn: 'Adam (Male - South, natural)', lang: 'vi', gender: 'm' },
+    ],
+    buildModelRequest: () => {
+      throw new Error('VieNeu-Vietnamese uses audio.cpp native inference, not Sherpa worker request');
+    },
+  },
 };
 
 /** 附加工件下载 URL（ghproxy 前置 / github 直连，同整包源语义）。 */
@@ -290,6 +379,14 @@ export function getTtsModelDir(id: TtsModelId): string {
 }
 
 export function isTtsModelInstalled(id: TtsModelId): boolean {
+  if (id === 'piper-vietnamese') {
+    const { isPiperVoiceInstalled } = require('./piper/piperManager') as typeof import('./piper/piperManager');
+    return isPiperVoiceInstalled();
+  }
+  if (id === 'vieneu-vietnamese') {
+    const { isVieNeuInstalled } = require('./vieneu/vieneuManager') as typeof import('./vieneu/vieneuManager');
+    return isVieNeuInstalled();
+  }
   const dir = path.join(getTtsModelsRoot(), TTS_MODELS[id].dirName);
   return TTS_MODELS[id].requiredFiles.every((f) =>
     fs.existsSync(path.join(dir, f)),
@@ -326,6 +423,11 @@ export function resolveTtsVoiceSid(
 }
 
 export function deleteTtsModel(id: TtsModelId): void {
+  if (id === 'piper-vietnamese') {
+    const { getPiperModelDownloader } = require('./piper/piperDownloader') as typeof import('./piper/piperDownloader');
+    getPiperModelDownloader().delete();
+    return;
+  }
   const dir = path.join(getTtsModelsRoot(), TTS_MODELS[id].dirName);
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
 }

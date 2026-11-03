@@ -127,10 +127,10 @@ export default function VideoToGifPanel() {
                 <Film className="h-7 w-7" />
               </div>
               <h3 className="mt-3 text-sm font-semibold text-foreground">
-                点击或拖拽视频到此处截取动图
+                {t('videoToGif.dropVideo')}
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                截取精彩片段，生成无噪点的高清 GIF 表情包
+                {t('videoToGif.dropVideoDesc')}
               </p>
             </div>
           ) : (
@@ -158,7 +158,7 @@ export default function VideoToGifPanel() {
                       disabled={isExporting || currentTime >= endSec}
                       className="h-7 text-xs px-2"
                     >
-                      设当前为起点
+                      {t('videoToGif.setStart')}
                     </Button>
                     <span className="font-mono text-muted-foreground">
                       {startSec.toFixed(2)}s
@@ -166,7 +166,9 @@ export default function VideoToGifPanel() {
                   </div>
 
                   <span className="font-mono text-xs font-semibold text-primary">
-                    动图时长: {(endSec - startSec).toFixed(2)} 秒
+                    {t('videoToGif.duration', {
+                      duration: (endSec - startSec).toFixed(2),
+                    })}
                   </span>
 
                   <div className="flex items-center gap-2">
@@ -180,7 +182,7 @@ export default function VideoToGifPanel() {
                       disabled={isExporting || currentTime <= startSec}
                       className="h-7 text-xs px-2"
                     >
-                      设当前为终点
+                      {t('videoToGif.setEnd')}
                     </Button>
                   </div>
                 </div>
@@ -194,13 +196,13 @@ export default function VideoToGifPanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              动图参数
+              {t('videoToGif.gifParams')}
             </h3>
 
             {/* 帧率 */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
-                动图帧率 (FPS)
+                {t('videoToGif.fpsLabel')}
               </Label>
               <Select
                 value={String(fps)}
@@ -211,10 +213,10 @@ export default function VideoToGifPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10">10 fps (体积小)</SelectItem>
-                  <SelectItem value="12">12 fps (经典流畅)</SelectItem>
-                  <SelectItem value="15">15 fps (高帧率逼真)</SelectItem>
-                  <SelectItem value="20">20 fps (极度丝滑)</SelectItem>
+                  <SelectItem value="10">{t('videoToGif.fps10')}</SelectItem>
+                  <SelectItem value="12">{t('videoToGif.fps12')}</SelectItem>
+                  <SelectItem value="15">{t('videoToGif.fps15')}</SelectItem>
+                  <SelectItem value="20">{t('videoToGif.fps20')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -222,7 +224,7 @@ export default function VideoToGifPanel() {
             {/* 宽度 */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
-                动图宽度 (等比缩放)
+                {t('videoToGif.widthLabel')}
               </Label>
               <Select
                 value={String(width)}
@@ -233,16 +235,21 @@ export default function VideoToGifPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="320">320 px (表情包尺寸)</SelectItem>
-                  <SelectItem value="480">480 px (标准中图)</SelectItem>
-                  <SelectItem value="640">640 px (高清大图)</SelectItem>
+                  <SelectItem value="320">
+                    {t('videoToGif.width320')}
+                  </SelectItem>
+                  <SelectItem value="480">
+                    {t('videoToGif.width480')}
+                  </SelectItem>
+                  <SelectItem value="640">
+                    {t('videoToGif.width640')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="rounded-lg bg-muted/40 p-3 text-[11px] text-muted-foreground leading-relaxed">
-              💡 采用双通道 PaletteGen 调色板渲染算法，避免传统 GIF
-              出现的彩点噪点和严重色斑。
+              💡 {t('videoToGif.highQualityNotice')}
             </div>
 
             {/* 输出目录 */}
@@ -290,7 +297,7 @@ export default function VideoToGifPanel() {
             {isExporting ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">正在渲染动图...</span>
+                  <span className="text-muted-foreground">{t('videoToGif.rendering')}</span>
                   <span className="font-mono font-medium">{progress}%</span>
                 </div>
                 <Progress value={progress} className="h-1.5" />
@@ -307,7 +314,7 @@ export default function VideoToGifPanel() {
                 }
               >
                 <Film className="mr-1.5 h-3.5 w-3.5" />
-                生成高清 GIF
+                {t('videoToGif.startExport')}
               </Button>
             )}
           </div>

@@ -13,6 +13,7 @@ import {
 
 interface UseJassubPreviewOptions {
   videoEl: HTMLVideoElement | null;
+  containerEl?: HTMLElement | null;
   subtitlePath?: string | null;
   sampleText?: string;
   style: SubtitleStyle;
@@ -53,6 +54,7 @@ function destroyPreview(session: PreviewSession) {
 
 export function useJassubPreview({
   videoEl,
+  containerEl,
   subtitlePath,
   sampleText,
   style,
@@ -125,7 +127,7 @@ export function useJassubPreview({
       destroyPreview(session);
       if (sessionRef.current === session) sessionRef.current = null;
     };
-  }, [videoEl, subtitlePath, attempt]);
+  }, [videoEl, containerEl, subtitlePath, attempt]);
 
   useEffect(() => {
     // An incomplete field may fail preview while typing. A new style is a new
@@ -226,8 +228,10 @@ export function useJassubPreview({
               position: 'absolute',
               pointerEvents: 'none',
               visibility: 'hidden',
+              zIndex: '20',
             });
-            videoEl.insertAdjacentElement('afterend', canvas);
+            const mountTarget = containerEl || videoEl.parentElement || videoEl;
+            mountTarget.appendChild(canvas);
             session.canvas = canvas;
             // Attach video only after ready so an initialization rejection is
             // caught here instead of escaping the constructor's async setVideo.

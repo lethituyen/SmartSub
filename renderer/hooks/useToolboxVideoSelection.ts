@@ -81,13 +81,27 @@ export function useToolboxVideoSelection<R extends ToolboxQueueResult>(
     Math.min(defaultEnd ?? info?.duration ?? 0, info?.duration ?? 0);
   const setRange = (field: 'startSec' | 'endSec', value: number) => {
     if (!selected || queue.getSnapshot().running) return;
+    const currentItem =
+      queue.getSnapshot().items.find((item) => item.id === selected.id) || selected;
     queue.updateInput(selected.id, {
-      ...selected.input,
-      startSec,
-      endSec,
+      ...currentItem.input,
+      startSec: currentItem.input.startSec ?? startSec,
+      endSec: currentItem.input.endSec ?? endSec,
       [field]: value,
     });
   };
+
+  const setBothSec = (newStart: number, newEnd: number) => {
+    if (!selected || queue.getSnapshot().running) return;
+    const currentItem =
+      queue.getSnapshot().items.find((item) => item.id === selected.id) || selected;
+    queue.updateInput(selected.id, {
+      ...currentItem.input,
+      startSec: newStart,
+      endSec: newEnd,
+    });
+  };
+
   return {
     selectedId: selected?.id,
     select: setSelectedId,
@@ -98,5 +112,6 @@ export function useToolboxVideoSelection<R extends ToolboxQueueResult>(
     endSec,
     setStartSec: (value: number) => setRange('startSec', value),
     setEndSec: (value: number) => setRange('endSec', value),
+    setBothSec,
   };
 }

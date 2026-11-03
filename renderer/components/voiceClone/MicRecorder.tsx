@@ -11,6 +11,7 @@ const REC_MAX_MS = 5 * 60 * 1000;
 /** 目标时长提示（秒）：给自动选段留出足够余量。 */
 const REC_TARGET_SEC: Record<VoiceCloneEngine, number> = {
   zipvoice: 15,
+  vieneu: 15,
   volcengine: 30,
   elevenlabs: 60,
 };

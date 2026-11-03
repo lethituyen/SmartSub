@@ -188,10 +188,10 @@ export default function EmbeddedSubtitlePanel() {
             <p className="mt-2.5 text-xs font-medium text-foreground">
               {videoPath
                 ? videoPath.split(/[/\\]/).pop()
-                : '点击或拖拽 MKV/MP4 视频到此处扫描'}
+                : t('embeddedSubtitles.dropVideo')}
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              快速扫描容器内嵌的 SubRip、ASS、WebVTT、mov_text 软字幕轨
+              {t('embeddedSubtitles.scanDesc')}
             </p>
           </div>
 
@@ -214,7 +214,7 @@ export default function EmbeddedSubtitlePanel() {
           )}
           <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
             <span className="text-xs font-medium text-foreground">
-              发现字幕轨: {streams.length} 条
+              {t('embeddedSubtitles.foundStreams', { count: streams.length })}
             </span>
             {streams.length > 0 && (
               <Button
@@ -225,8 +225,8 @@ export default function EmbeddedSubtitlePanel() {
                 className="h-7 text-xs text-muted-foreground hover:text-foreground"
               >
                 {selectedIndices.length === streams.length
-                  ? '取消全选'
-                  : '全选'}
+                  ? t('embeddedSubtitles.deselectAll')
+                  : t('embeddedSubtitles.selectAll')}
               </Button>
             )}
           </div>
@@ -235,13 +235,15 @@ export default function EmbeddedSubtitlePanel() {
             {isScanning ? (
               <div className="flex h-48 flex-col items-center justify-center text-xs text-muted-foreground gap-2">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <span>正在扫描内嵌字幕轨...</span>
+                <span>{t('embeddedSubtitles.scanning')}</span>
               </div>
             ) : streams.length === 0 ? (
               <div className="flex h-48 flex-col items-center justify-center text-center text-xs text-muted-foreground">
                 <FileSearch className="h-8 w-8 text-muted-foreground/40 mb-2" />
                 <span>
-                  {videoPath ? '未发现文本字幕轨' : '请先选择视频文件'}
+                  {videoPath
+                    ? t('embeddedSubtitles.noSubtitlesFound')
+                    : t('embeddedSubtitles.selectVideoFirst')}
                 </span>
               </div>
             ) : (
@@ -271,7 +273,9 @@ export default function EmbeddedSubtitlePanel() {
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium text-foreground">
-                              轨道 #{stream.subIndex + 1}
+                              {t('embeddedSubtitles.trackNumber', {
+                                number: stream.subIndex + 1,
+                              })}
                             </span>
                             <Badge
                               variant="outline"
@@ -297,7 +301,7 @@ export default function EmbeddedSubtitlePanel() {
                                 variant="outline"
                                 className="text-[10px] py-0 h-4 border-amber-500/40 text-amber-600 dark:text-amber-400"
                               >
-                                图形字幕 (不可提取为文本)
+                                {t('embeddedSubtitles.graphicSubtitle')}
                               </Badge>
                             )}
                           </div>
@@ -321,12 +325,12 @@ export default function EmbeddedSubtitlePanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              提取选项
+              {t('embeddedSubtitles.optionsTitle')}
             </h3>
 
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
-                导出字幕格式
+                {t('embeddedSubtitles.exportFormat')}
               </Label>
               <Select
                 value={targetFormat}
@@ -337,9 +341,9 @@ export default function EmbeddedSubtitlePanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="srt">SRT (SubRip 通用格式)</SelectItem>
-                  <SelectItem value="ass">ASS (高级样式格式)</SelectItem>
-                  <SelectItem value="vtt">VTT (WebVTT 格式)</SelectItem>
+                  <SelectItem value="srt">{t('embeddedSubtitles.formatSrt')}</SelectItem>
+                  <SelectItem value="ass">{t('embeddedSubtitles.formatAss')}</SelectItem>
+                  <SelectItem value="vtt">{t('embeddedSubtitles.formatVtt')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -406,7 +410,7 @@ export default function EmbeddedSubtitlePanel() {
               {isExtracting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  提取中...
+                  {t('embeddedSubtitles.extracting')}
                 </>
               ) : (
                 t('queue.extractAll')

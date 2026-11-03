@@ -2,13 +2,43 @@ import { app, BrowserWindow, Menu, shell } from 'electron';
 import { store } from './store';
 import { APP_DISPLAY_NAME } from './appBranding';
 
-type MenuLanguage = 'zh' | 'en';
+type MenuLanguage = 'zh' | 'en' | 'vi';
 
 /**
  * 应用菜单本地化字典。
- * 主进程不引 i18n 运行时，菜单条目有限，直接维护双语字典。
+ * 主进程不引 i18n 运行时，菜单条目有限，直接维护多语字典。
  */
 const LABELS: Record<MenuLanguage, Record<string, string>> = {
+  vi: {
+    about: 'Giới thiệu %s',
+    hide: 'Ẩn %s',
+    hideOthers: 'Ẩn ứng dụng khác',
+    unhide: 'Hiện tất cả',
+    quit: 'Thoát %s',
+    file: 'Tệp',
+    edit: 'Chỉnh sửa',
+    undo: 'Hoàn tác',
+    redo: 'Làm lại',
+    cut: 'Cắt',
+    copy: 'Sao chép',
+    paste: 'Dán',
+    selectAll: 'Chọn tất cả',
+    view: 'Xem',
+    reload: 'Tải lại',
+    toggleDevTools: 'Công cụ cho nhà phát triển',
+    resetZoom: 'Kích thước thực tế',
+    zoomIn: 'Phóng to',
+    zoomOut: 'Thu nhỏ',
+    togglefullscreen: 'Chuyển toàn màn hình',
+    window: 'Cửa sổ',
+    minimize: 'Thu nhỏ',
+    close: 'Đóng cửa sổ',
+    help: 'Trợ giúp',
+    checkUpdates: 'Kiểm tra cập nhật…',
+    openLogs: 'Xem nhật ký log',
+    github: 'Kho mã nguồn GitHub',
+    reportIssue: 'Báo cáo sự cố',
+  },
   zh: {
     about: '关于 %s',
     hide: '隐藏 %s',
@@ -77,10 +107,13 @@ let mainWindowRef: BrowserWindow | null = null;
 
 function resolveLanguage(): MenuLanguage {
   const settings = store.get('settings') as { language?: string } | undefined;
-  if (settings?.language === 'zh' || settings?.language === 'en') {
+  if (settings?.language === 'zh' || settings?.language === 'en' || settings?.language === 'vi') {
     return settings.language;
   }
-  return app.getLocale().toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const appLocale = app.getLocale().toLowerCase();
+  if (appLocale.startsWith('zh')) return 'zh';
+  if (appLocale.startsWith('en')) return 'en';
+  return 'vi';
 }
 
 /** 发事件给 renderer 前确保窗口可见（菜单可能在窗口隐藏时触发） */

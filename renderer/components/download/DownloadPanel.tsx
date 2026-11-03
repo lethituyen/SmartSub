@@ -226,7 +226,6 @@ export default function DownloadPanel() {
         cookieProfiles.map((p) => ({
           id: p.id,
           matchDomains: p.matchDomains,
-          importedAt: p.importedAt,
         })),
       );
       openCookieDialog(matched);

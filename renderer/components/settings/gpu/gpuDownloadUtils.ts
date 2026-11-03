@@ -6,7 +6,6 @@ import {
   type RemoteAddonVersions,
 } from '../../../../types/addon';
 import type { PackageEdition } from './types';
-import { isCudaToolkitCompatible } from '../../../../types/cudaToolkitCompatibility';
 
 const ADDON_DOWNLOAD_SOURCE_KEY = 'addonDownloadSource';
 const CUDA_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
@@ -63,9 +62,9 @@ export function getCompatibleCudaVersions(
 
 export function getDefaultPackageEdition(
   gpuEnv: GpuEnvironment,
-  version: CudaVersion | null = getRecommendedCudaVersion(gpuEnv),
 ): PackageEdition {
-  return canDownloadLiteEdition(gpuEnv, version) ? 'lite' : 'full';
+  const toolkitInstalled = gpuEnv.nvidia?.cudaToolkit.installed ?? false;
+  return toolkitInstalled ? 'lite' : 'full';
 }
 
 export function editionToDownloadType(
@@ -74,11 +73,8 @@ export function editionToDownloadType(
   return edition === 'full' ? 'tar.gz' : 'node.gz';
 }
 
-export function canDownloadLiteEdition(
-  gpuEnv: GpuEnvironment,
-  version: CudaVersion | null = getRecommendedCudaVersion(gpuEnv),
-): boolean {
-  return isCudaToolkitCompatible(gpuEnv.nvidia?.cudaToolkit, version);
+export function canDownloadLiteEdition(gpuEnv: GpuEnvironment): boolean {
+  return gpuEnv.nvidia?.cudaToolkit.installed ?? false;
 }
 
 export function getRecommendedCudaVersion(

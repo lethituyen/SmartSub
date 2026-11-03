@@ -8,6 +8,7 @@ import {
   ASR_VOLCENGINE,
   ASR_XFYUN,
   ASR_XIAOMI_MIMO,
+  ASR_JIANYING,
   parseAsrModels,
   type AsrProvider,
 } from '../../../types/asrProvider';
@@ -134,6 +135,17 @@ export async function testAsrConnection(
   }
   if (provider?.type === ASR_XFYUN) {
     return testXfyunConnection(provider);
+  }
+  if (provider?.type === ASR_JIANYING) {
+    try {
+      await fetch('https://lv-pc-api-sinfonlinec.ulikecam.com', {
+        method: 'HEAD',
+        signal: timeoutSignal(),
+      });
+      return { ok: true };
+    } catch {
+      return { ok: false, detail: 'JianYing ASR endpoint unreachable' };
+    }
   }
 
   const apiKey = String(provider?.apiKey ?? '').trim();

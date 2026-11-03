@@ -29,7 +29,6 @@ interface OutputFormatControlProps {
   formData: any;
   typeDef: TaskTypeDef;
   className?: string;
-  compact?: boolean;
 }
 
 export default function OutputFormatControl({
@@ -37,7 +36,6 @@ export default function OutputFormatControl({
   formData,
   typeDef,
   className,
-  compact = false,
 }: OutputFormatControlProps) {
   const { t } = useTranslation('tasks');
   const { t: tHome } = useTranslation('home');
@@ -63,11 +61,6 @@ export default function OutputFormatControl({
   // 未保存样式时与主进程一致地视为默认（仅译文），摘要、选择框与示例同源。
   const translateContent = normalizeTranslateContent(formData.translateContent);
   const contentKey = translateContentLabelKey(translateContent);
-  const fullSummary = `${typeDef.hasTranslate ? `${tHome(contentKey)} · ` : ''}${formatSummary}`;
-  const summary =
-    compact && typeDef.hasTranslate && translateContent !== 'onlyTranslate'
-      ? `${tHome('outputBilingual')} · ${formatSummary}`
-      : fullSummary;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -77,7 +70,6 @@ export default function OutputFormatControl({
           variant="outline"
           size="sm"
           aria-label={tHome('subtitleOutputFormat')}
-          title={fullSummary}
           className={cn(
             'h-8 w-full min-w-0 text-xs gap-1 px-2.5 font-normal justify-between',
             className,
@@ -85,7 +77,10 @@ export default function OutputFormatControl({
         >
           <div className="flex items-center gap-1.5 min-w-0 truncate">
             <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate">{summary}</span>
+            <span className="truncate">
+              {typeDef.hasTranslate ? `${tHome(contentKey)} · ` : ''}
+              {formatSummary}
+            </span>
           </div>
           <ChevronDown className="h-3 w-3 shrink-0 opacity-50 ml-1" />
         </Button>

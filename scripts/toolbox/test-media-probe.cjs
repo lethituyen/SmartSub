@@ -75,8 +75,6 @@ async function main() {
     hasAudio: false,
     videoCodec: 'h264',
     audioCodec: undefined,
-    audioCodecs: [],
-    pixelFormat: 'yuv420p',
   });
   assert.equal((await probeVideoInfo(audible)).hasAudio, true);
   const {

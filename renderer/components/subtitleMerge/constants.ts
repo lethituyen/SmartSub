@@ -11,9 +11,9 @@ import type { SubtitleStyle, StylePreset } from '../../../types/subtitleMerge';
 export const getPlatformDefaultFont = (): string => {
   if (typeof navigator === 'undefined') return 'Arial';
   const ua = `${navigator.platform || ''} ${navigator.userAgent || ''}`;
-  if (/mac/i.test(ua)) return 'PingFang SC';
-  if (/win/i.test(ua)) return 'Microsoft YaHei';
-  return 'Noto Sans CJK SC';
+  if (/mac/i.test(ua)) return 'Helvetica Neue';
+  if (/win/i.test(ua)) return 'Segoe UI';
+  return 'Arial';
 };
 
 /**

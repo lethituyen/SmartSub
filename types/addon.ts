@@ -44,8 +44,6 @@ export type GpuVendor = 'nvidia' | 'amd' | 'intel' | 'apple' | 'unknown';
 export interface GpuInfo {
   name: string;
   vendor: GpuVendor;
-  /** OS-reported driver version; Windows includes AMD, Intel and virtual adapters. */
-  driverVersion?: string;
   /** CUDA device index reported by nvidia-smi (NVIDIA only). */
   index?: number;
   /** Stable NVIDIA GPU UUID used by CUDA_VISIBLE_DEVICES. */
@@ -155,7 +153,6 @@ export interface AddonRecommendation {
     | 'cudaVersionTooOld'
     | 'maxCudaUnknown'
     | 'toolkitInstalled'
-    | 'toolkitIncompatible'
     | 'toolkitMissing';
 }
 

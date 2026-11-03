@@ -161,14 +161,16 @@ export default function ClonedVoicePanel({
       {/* 元信息 + 重命名 */}
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline" className="text-[11px]">
-          {voice.engine === 'zipvoice'
-            ? t('engineZipvoice')
-            : voice.engine === 'elevenlabs'
-              ? t('engineElevenlabs')
-              : t('engineVolcengine')}
+          {voice.engine === 'vieneu'
+            ? t('engineVieneu')
+            : voice.engine === 'zipvoice'
+              ? t('engineZipvoice')
+              : voice.engine === 'elevenlabs'
+                ? t('engineElevenlabs')
+                : t('engineVolcengine')}
         </Badge>
         <Badge variant="outline" className="text-[11px]">
-          {voice.language === 'zh' ? t('langZh') : t('langEn')}
+          {voice.language === 'vi' ? t('langVi') : voice.language === 'zh' ? t('langZh') : t('langEn')}
         </Badge>
         {voice.engine === 'volcengine' && (
           <Badge

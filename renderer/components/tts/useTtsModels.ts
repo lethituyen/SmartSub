@@ -4,12 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 export interface TtsModelItem {
   id: string;
   installed: boolean;
+  engineInstalled?: boolean;
   displayName: string;
   languages: string[];
   approxInstallBytes: number;
   sampleRate: number;
   defaultVoiceId: string;
-  voices: Array<{ id: string; label: string }>;
+  voices: Array<{ id: string; label: string; gender?: 'f' | 'm' }>;
+  installedVoices?: string[];
   /** 零样本克隆模型：无内置音色，voice 池 = 我的音色。 */
   cloneOnly?: boolean;
 }

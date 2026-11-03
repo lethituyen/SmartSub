@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCustomLanguages } from '../../hooks/useCustomLanguages';
-import { cn, supportedLanguage } from '../../lib/utils';
+import { supportedLanguage } from '../../lib/utils';
 import { mergeLanguageOptions } from '../../../types/language';
 
 export default function DubbingLanguageSelect({
@@ -16,13 +16,11 @@ export default function DubbingLanguageSelect({
   onChange,
   resolved,
   disabled,
-  className,
 }: {
   value?: string;
   onChange: (language: string) => void;
   resolved?: string;
   disabled?: boolean;
-  className?: string;
 }) {
   const { t } = useTranslation('common');
   const custom = useCustomLanguages();
@@ -30,10 +28,7 @@ export default function DubbingLanguageSelect({
   const current = value || 'auto';
   return (
     <Select value={current} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger
-        className={cn('min-w-0 w-full', className)}
-        aria-label={t('ttsLanguage')}
-      >
+      <SelectTrigger className="min-w-0 w-full" aria-label={t('ttsLanguage')}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

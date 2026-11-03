@@ -370,7 +370,9 @@ const TtsServicesTab: React.FC = () => {
                   const viewId = `${CLONE_VIEW_PREFIX}${v.id}`;
                   const active = selectedView === viewId;
                   const ready =
-                    v.engine === 'zipvoice' ? true : v.trainStatus === 'ready';
+                    v.engine === 'zipvoice' || v.engine === 'vieneu'
+                      ? true
+                      : v.trainStatus === 'ready';
                   return (
                     <button
                       key={viewId}
@@ -494,11 +496,13 @@ const TtsServicesTab: React.FC = () => {
                   )}
                   {activeClone && (
                     <p className="text-xs text-muted-foreground">
-                      {activeClone.engine === 'zipvoice'
-                        ? cloneT('engineZipvoice')
-                        : activeClone.engine === 'elevenlabs'
-                          ? cloneT('engineElevenlabs')
-                          : cloneT('engineVolcengine')}
+                      {activeClone.engine === 'vieneu'
+                        ? cloneT('engineVieneu')
+                        : activeClone.engine === 'zipvoice'
+                          ? cloneT('engineZipvoice')
+                          : activeClone.engine === 'elevenlabs'
+                            ? cloneT('engineElevenlabs')
+                            : cloneT('engineVolcengine')}
                     </p>
                   )}
                 </div>

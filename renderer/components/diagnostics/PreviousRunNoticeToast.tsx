@@ -37,6 +37,7 @@ export function PreviousRunNoticeToast() {
 
   useEffect(() => {
     let cancelled = false;
+    if (!window?.ipc?.invoke) return;
     window.ipc
       .invoke('crash:previous-run-notice')
       .then((notice: PreviousRunNotice | null) => {

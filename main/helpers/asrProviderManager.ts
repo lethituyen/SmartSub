@@ -1,17 +1,30 @@
-import type { AsrProvider } from '../../types/asrProvider';
+import { ASR_JIANYING, type AsrProvider } from '../../types/asrProvider';
 import { store } from './store';
 import { assertProviderList } from '../../types/providerPersistence';
+
+export const DEFAULT_JIANYING_PROVIDER: AsrProvider = {
+  id: 'jianying_default',
+  name: 'JianYing / CapCut (剪映)',
+  type: ASR_JIANYING,
+  models: 'jianying-default',
+  requestTimeoutSec: 300,
+  concurrency: 2,
+};
 
 /**
  * 云端听写（在线 ASR）服务商实例的读写管理。
  *
- * 与翻译服务商 providerManager 不同：ASR 实例必须携带用户凭据，故**不**自动初始化任何
- * 内置实例（避免 electron-store 回灌空凭据实例污染下拉/就绪判定）。缺省即空列表。
+ * 剪映（JianYing）为内置免费免凭据 ASR，默认提供一个开箱即用实例；
+ * 其他商用云 ASR 实例需用户自行配置凭据。
  */
 export function getAsrProviders(): AsrProvider[] {
   const stored = store.get('asrProviders');
-  const providers = stored === undefined ? [] : stored;
+  let providers = stored === undefined ? [] : stored;
   assertProviderList(providers);
+  if (!providers.some((p) => p.type === ASR_JIANYING)) {
+    providers = [...providers, DEFAULT_JIANYING_PROVIDER];
+    store.set('asrProviders', providers);
+  }
   return providers;
 }
 

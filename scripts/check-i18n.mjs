@@ -35,28 +35,41 @@ const listJson = (loc) =>
     .filter((f) => f.endsWith('.json'))
     .sort();
 
-const zhFiles = listJson('zh');
-const enFiles = listJson('en');
+const locales = ['zh', 'en', 'vi'];
 
-for (const f of zhFiles.filter((f) => !enFiles.includes(f))) {
-  fail(`namespace 仅存在于 zh: ${f}`);
-}
-for (const f of enFiles.filter((f) => !zhFiles.includes(f))) {
-  fail(`namespace 仅存在于 en: ${f}`);
-}
-
-for (const f of zhFiles.filter((f) => enFiles.includes(f))) {
-  const zh = new Set(
-    flatten(JSON.parse(fs.readFileSync(path.join(localesDir, 'zh', f), 'utf8'))),
-  );
-  const en = new Set(
-    flatten(JSON.parse(fs.readFileSync(path.join(localesDir, 'en', f), 'utf8'))),
-  );
-  for (const k of zh) {
-    if (!en.has(k)) fail(`${f} 缺 en key: ${k}`);
+for (const loc of locales) {
+  const files = listJson(loc);
+  for (const otherLoc of locales) {
+    if (loc === otherLoc) continue;
+    const otherFiles = listJson(otherLoc);
+    for (const f of files.filter((f) => !otherFiles.includes(f))) {
+      fail(`namespace ${f} 仅存在于 ${loc}，缺失于 ${otherLoc}`);
+    }
   }
-  for (const k of en) {
-    if (!zh.has(k)) fail(`${f} 缺 zh key: ${k}`);
+}
+
+const baseFiles = listJson('en');
+for (const f of baseFiles) {
+  const keysByLocale = Object.fromEntries(
+    locales.map((loc) => [
+      loc,
+      new Set(
+        flatten(
+          JSON.parse(fs.readFileSync(path.join(localesDir, loc, f), 'utf8')),
+        ),
+      ),
+    ]),
+  );
+
+  for (const loc of locales) {
+    for (const otherLoc of locales) {
+      if (loc === otherLoc) continue;
+      for (const k of keysByLocale[loc]) {
+        if (!keysByLocale[otherLoc].has(k)) {
+          fail(`${f} 缺失于 ${otherLoc} 的 key: ${k} (存在于 ${loc})`);
+        }
+      }
+    }
   }
 }
 
@@ -87,4 +100,4 @@ for (const dir of srcDirs) {
 if (failed) {
   process.exit(1);
 }
-console.log('✓ i18n check passed: zh/en key parity OK, no fallback patterns');
+console.log('✓ i18n check passed: zh/en/vi key parity OK, no fallback patterns');

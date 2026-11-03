@@ -231,7 +231,7 @@ const GpuAccelerationCard: React.FC<GpuAccelerationCardProps> = ({
   useEffect(() => {
     const cleanup = window?.ipc?.on(
       'active-backend-changed',
-      (info: AddonLoadResultInfo | null) => {
+      (info: AddonLoadResultInfo) => {
         setActiveBackend(info);
       },
     );
@@ -294,9 +294,7 @@ const GpuAccelerationCard: React.FC<GpuAccelerationCardProps> = ({
       variant === 'vulkan'
         ? 'node.gz'
         : (forceType ??
-          (gpuEnv
-            ? editionToDownloadType(getDefaultPackageEdition(gpuEnv, variant))
-            : 'tar.gz'));
+          (gpuEnv?.nvidia?.recommendation.needsDlls ? 'tar.gz' : 'node.gz'));
     setDownloadingVariant(variant);
     downloadingVariantRef.current = variant;
     try {

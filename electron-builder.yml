@@ -2,12 +2,9 @@ appId: com.example.smartsub
 productName: SmartSub
 copyright: Copyright © 2024 buxuku
 directories:
-  output: dist
+  output: release
   buildResources: resources
 extraResources:
-  - from: ./extraResources/diagnostics/
-    to: ./extraResources/diagnostics/
-    filter: ['*.cjs']
   - from: app/automation
     to: automation
     filter:
@@ -18,7 +15,7 @@ files:
   - from: .
     filter:
       - package.json
-      - app
+      - app/**/*
       # ---- 以下均为运行时不会加载的文件，排除不影响任何功能 ----
       # source map 同上（background / preload）
       - '!app/{background,preload}.js.map'
@@ -39,6 +36,8 @@ files:
       - '!node_modules/fluent-ffmpeg/{coverage,doc,tools,OLD}{,/**/*}'
 publish:
   - provider: github
+    owner: buxuku
+    repo: smartsub
 generateUpdatesFilesForAllChannels: true
 electronUpdaterCompatibility: '>=2.16'
 mac:
@@ -51,8 +50,12 @@ mac:
     NSMicrophoneUsageDescription: 'SmartSub needs microphone access to record your voice for voice cloning. SmartSub 需要使用麦克风录制您的声音以创建克隆音色。'
   publish:
     - provider: github
+      owner: buxuku
+      repo: smartsub
       channel: latest
   extraResources:
+    - from: ./extraResources/douyin_cdp_resolver.mjs
+      to: ./extraResources/douyin_cdp_resolver.mjs
     - from: ./extraResources/python-review/
       to: ./extraResources/python-review/
       filter: ['*.py']
@@ -71,12 +74,24 @@ mac:
         # 无版本号的 libonnxruntime.dylib 与 libonnxruntime.<ver>.dylib 是同一个库的两份拷贝
         # （去掉 ad-hoc 签名后逐字节相同，install name 也相同）。sherpa-onnx.node /
         # libsherpa-onnx-{c,cxx}-api 均以 @loader_path/libonnxruntime.<ver>.dylib 链接，
-        # 代码中也无按无版本名加载的逻辑，保留带版本号的一份即可
-        - '!**/libonnxruntime.dylib'
+    - from: ./extraResources/ocr/
+      to: ./extraResources/ocr/
+      filter:
+        - '**/*'
+    - from: ./extraResources/tts/
+      to: ./extraResources/tts/
+      filter:
+        - '**/*'
+    - from: ./extraResources/audiocpp/
+      to: ./extraResources/audiocpp/
+      filter:
+        - '**/*'
 win:
   target:
     - nsis
   extraResources:
+    - from: ./extraResources/douyin_cdp_resolver.mjs
+      to: ./extraResources/douyin_cdp_resolver.mjs
     - from: ./extraResources/python-review/
       to: ./extraResources/python-review/
       filter: ['*.py']
@@ -92,10 +107,28 @@ win:
       to: ./extraResources/sherpa/
       filter:
         - '**/*'
+    - from: ./extraResources/piper/
+      to: ./extraResources/piper/
+      filter:
+        - '**/*'
+    - from: ./extraResources/ocr/
+      to: ./extraResources/ocr/
+      filter:
+        - '**/*'
+    - from: ./extraResources/tts/
+      to: ./extraResources/tts/
+      filter:
+        - '**/*'
+    - from: ./extraResources/audiocpp/
+      to: ./extraResources/audiocpp/
+      filter:
+        - '**/*'
   requestedExecutionLevel: asInvoker
   artifactName: '${productName}_Windows_${version}_${arch}.${ext}'
   publish:
     - provider: github
+      owner: buxuku
+      repo: smartsub
       channel: latest
 linux:
   target:
@@ -106,8 +139,12 @@ linux:
   artifactName: '${productName}_Linux_${version}_${arch}.${ext}'
   publish:
     - provider: github
+      owner: buxuku
+      repo: smartsub
       channel: latest
   extraResources:
+    - from: ./extraResources/douyin_cdp_resolver.mjs
+      to: ./extraResources/douyin_cdp_resolver.mjs
     - from: ./extraResources/python-review/
       to: ./extraResources/python-review/
       filter: ['*.py']
@@ -121,6 +158,18 @@ linux:
       to: ./extraResources/sample-onboarding.mp3
     - from: ./extraResources/sherpa/
       to: ./extraResources/sherpa/
+      filter:
+        - '**/*'
+    - from: ./extraResources/ocr/
+      to: ./extraResources/ocr/
+      filter:
+        - '**/*'
+    - from: ./extraResources/tts/
+      to: ./extraResources/tts/
+      filter:
+        - '**/*'
+    - from: ./extraResources/audiocpp/
+      to: ./extraResources/audiocpp/
       filter:
         - '**/*'
 nsis:

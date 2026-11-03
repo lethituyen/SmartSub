@@ -1,0 +1,132 @@
+{
+  "title": "Tham số tùy chỉnh",
+  "subtitle": "Cấu hình thêm tham số Header và Body trong yêu cầu gửi tới nhà cung cấp này",
+  "actions": {
+    "export": "Xuất tệp",
+    "import": "Nhập tệp",
+    "refresh": "Làm mới",
+    "addParameter": "Thêm tham số",
+    "duplicate": "Nhân bản",
+    "cancel": "Hủy bỏ"
+  },
+  "tabs": {
+    "headers": "Header",
+    "bodyParameters": "Tham số Body"
+  },
+  "headers": {
+    "title": "HTTP Header",
+    "description": "Header tùy chỉnh gửi kèm yêu cầu API (ví dụ: xác thực, phiên bản API)"
+  },
+  "bodyParameters": {
+    "title": "Tham số Body",
+    "description": "Tham số tùy chỉnh trong Body yêu cầu API (ví dụ: thiết lập mô hình, tham số hành vi)"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm tham số…"
+  },
+  "more": {
+    "label": "Thao tác khác",
+    "search": "Tìm tham số",
+    "import": "Nhập JSON",
+    "export": "Xuất JSON",
+    "refresh": "Đọc lại từ ổ đĩa"
+  },
+  "addDialog": {
+    "title": "Thêm tham số mới",
+    "description": "Tạo tham số tùy chỉnh mới cho nhà cung cấp này.",
+    "fields": {
+      "key": "Tên tham số (Key)",
+      "category": "Phân loại",
+      "type": "Kiểu dữ liệu",
+      "initialValue": "Giá trị ban đầu"
+    },
+    "placeholders": {
+      "key": "Ví dụ: temperature, max_tokens",
+      "initialValue": "Nhập giá trị ban đầu"
+    },
+    "tooltips": {
+      "initialValue": "Giá trị ban đầu của tham số mới"
+    }
+  },
+  "types": {
+    "string": "Chuỗi (String)",
+    "integer": "Số nguyên (Integer)",
+    "float": "Số thực (Float)",
+    "boolean": "Boolean (Đúng/Sai)",
+    "object": "Đối tượng (Object)",
+    "array": "Mảng (Array)"
+  },
+  "table": {
+    "emptyValue": "Vui lòng nhập giá trị tham số trước khi lưu.",
+    "keyColumn": "Tên tham số",
+    "valueColumn": "Giá trị",
+    "typeColumn": "Kiểu dữ liệu",
+    "actionColumn": "Thao tác",
+    "keyPlaceholder": "Ví dụ: temperature",
+    "valuePlaceholder": "Ví dụ: 0.3",
+    "stringPlaceholder": "Ví dụ: hello",
+    "numberPlaceholder": "Ví dụ: 0.3",
+    "arrayPlaceholder": "[1, 2, 3]",
+    "arrayHint": "Định dạng mảng JSON, ví dụ: [1, 2, 3] hoặc [\"a\", \"b\"]",
+    "objectPlaceholder": "{\"type\": \"enabled\"}",
+    "objectHint": "Định dạng đối tượng JSON, hỗ trợ object và array lồng nhau.",
+    "booleanHint": "Công tắc biểu thị true / false",
+    "duplicateKey": "Tên tham số này đã tồn tại",
+    "emptyKey": "Vui lòng điền tên tham số",
+    "addRowLabel": "Tham số mới",
+    "addButton": "Thêm",
+    "addHint": "Điền tên tham số, kiểu dữ liệu và giá trị ở dòng「Tham số mới」rồi nhấn「Thêm」hoặc Enter; trong ô JSON nhấn Enter để xuống dòng, Ctrl/⌘ + Enter để gửi.",
+    "delete": "Xóa"
+  },
+  "categories": {
+    "headers": "Header",
+    "body": "Body"
+  },
+  "status": {
+    "saving": "Đang lưu...",
+    "saved": "Đã lưu",
+    "error": "Lỗi",
+    "loadFailed": "Không thể đọc cấu hình tham số, tạm thời không thể chỉnh sửa cho đến khi đọc thành công.",
+    "saveFailed": "Các thay đổi tham số chưa được lưu, vui lòng thử lại trước khi rời đi.",
+    "retry": "Thử lại",
+    "details": "Chi tiết lỗi",
+    "upToDate": "Đã là mới nhất",
+    "unsavedChanges": "Có thay đổi chưa lưu",
+    "savedAutomatically": "Tự động lưu thành công"
+  },
+  "summary": {
+    "title": "Tóm tắt cấu hình",
+    "totalParameters": "Tổng số tham số:",
+    "headers": "Header:",
+    "bodyParameters": "Tham số Body:",
+    "validationErrors": "Lỗi xác thực:",
+    "saveStatus": "Trạng thái lưu:",
+    "lastSaved": "Lần lưu cuối:"
+  },
+  "validation": {
+    "valid": "Hợp lệ",
+    "invalidJson": "JSON không hợp lệ: {message}",
+    "notArray": "Giá trị phải là mảng JSON, ví dụ: [1, 2, 3]",
+    "notObject": "Giá trị phải là đối tượng JSON, ví dụ: {\"type\": \"enabled\"}"
+  },
+  "placeholders": {
+    "enterValue": "Nhập {key}",
+    "jsonArray": "[]",
+    "itemNumber": "Mục {number}"
+  },
+  "arrayEditor": {
+    "addItem": "Thêm mục",
+    "jsonArrayEditor": "Trình chỉnh sửa mảng JSON"
+  },
+  "emptyStates": {
+    "noHeadersSearch": "Không tìm thấy Header nào khớp với tìm kiếm.",
+    "noHeadersConfigured": "Chưa cấu hình Header tùy chỉnh nào.",
+    "noBodyParamsSearch": "Không tìm thấy tham số Body nào khớp với tìm kiếm.",
+    "noBodyParamsConfigured": "Chưa cấu hình tham số Body tùy chỉnh nào."
+  },
+  "unsavedChangesDialog": {
+    "title": "Có thay đổi chưa lưu",
+    "description": "Bạn có các thay đổi chưa được lưu, làm mới sẽ làm mất các thay đổi này. Hệ thống đang tự động lưu, nhưng làm mới ngay lúc này sẽ hủy các chỉnh sửa gần nhất.",
+    "refreshAnyway": "Vẫn làm mới"
+  }
+}

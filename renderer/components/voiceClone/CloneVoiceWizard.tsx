@@ -171,7 +171,7 @@ export default function CloneVoiceWizard({
   /** 字幕行清单（来源含字幕时按行选段）。 */
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCueLite[]>([]);
 
-  const [language, setLanguage] = useState<'zh' | 'en'>('zh');
+  const [language, setLanguage] = useState<'zh' | 'en' | 'vi'>('zh');
   const [refText, setRefText] = useState('');
   const [transcribing, setTranscribing] = useState(false);
   const [textSource, setTextSource] = useState<
@@ -248,8 +248,10 @@ export default function CloneVoiceWizard({
     window.ipc
       .invoke('getTtsModelStatus')
       .then((s: any) => {
-        const m = (s?.models ?? []).find((x: any) => x.cloneOnly);
-        setModelInstalled(!!m?.installed);
+        const targetModelId =
+          engine === 'vieneu' ? 'vieneu-vietnamese' : 'zipvoice-distill-zh-en';
+        const m = (s?.models ?? []).find((x: any) => x.id === targetModelId);
+        setModelInstalled(m ? !!m.installed : true);
       })
       .catch(() => setModelInstalled(true));
     window.ipc
@@ -501,10 +503,10 @@ export default function CloneVoiceWizard({
         startMs: range.startMs,
         endMs: range.endMs,
         engine,
-        language,
+        language: engine === 'vieneu' ? 'vi' : language,
         name: name.trim(),
         refText: refText.trim(),
-        ...(engine === 'zipvoice' ? { localDenoise } : {}),
+        ...(engine === 'zipvoice' || engine === 'vieneu' ? { localDenoise } : {}),
         ...(engine === 'volcengine' && volcProvider
           ? {
               volc: {
@@ -659,10 +661,16 @@ export default function CloneVoiceWizard({
           {/* ── Step 1 选素材 ── */}
           {step === 1 && (
             <div className="space-y-3">
-              {/* 引擎选择：本地免费 / 火山复刻（需槽位）/ ElevenLabs IVC */}
-              <div className="grid grid-cols-3 gap-2">
+              {/* 引擎选择：本地免费 (VieNeu / ZipVoice) / 火山复刻（需槽位）/ ElevenLabs IVC */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {(
                   [
+                    {
+                      id: 'vieneu' as VoiceCloneEngine,
+                      enabled: true,
+                      title: t('engineVieneuTitle'),
+                      desc: t('engineVieneuDesc'),
+                    },
                     {
                       id: 'zipvoice' as VoiceCloneEngine,
                       enabled: true,
@@ -698,6 +706,9 @@ export default function CloneVoiceWizard({
                     disabled={!card.enabled}
                     onClick={() => {
                       setEngine(card.id);
+                      if (card.id === 'vieneu') {
+                        setLanguage('vi');
+                      }
                       // 已有分析时选区按新档位收口（质检卡随 engine 即时复检）。
                       if (analysis) {
                         const max = CLONE_TARGET_RANGES[card.id].maxMs;
@@ -723,10 +734,10 @@ export default function CloneVoiceWizard({
                   </button>
                 ))}
               </div>
-              {engine === 'zipvoice' && !modelInstalled && (
+              {(engine === 'zipvoice' || engine === 'vieneu') && !modelInstalled && (
                 <p className="flex items-start gap-1.5 rounded-md bg-warning/10 p-2 text-xs text-warning">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  {t('modelMissingHint')}
+                  {engine === 'vieneu' ? t('modelVieneuMissingHint') : t('modelMissingHint')}
                 </p>
               )}
               {showRecorder ? (
@@ -973,7 +984,7 @@ export default function CloneVoiceWizard({
                   {/* 处理选项（与质检结果同屏）：本地降噪试听 / 火山服务端开关 */}
                   {report && (
                     <div className="space-y-2 rounded-lg border p-3">
-                      {engine === 'zipvoice' ? (
+                      {engine === 'zipvoice' || engine === 'vieneu' ? (
                         <div className="flex items-center justify-between gap-2">
                           <div className="min-w-0">
                             <p className="text-xs font-medium">
@@ -1230,15 +1241,25 @@ export default function CloneVoiceWizard({
                     />
                   </div>
 
-                  {/* 云端分支（火山/EL）：语言（试听样本用）；火山另需槽位 ID */}
-                  {engine !== 'zipvoice' && (
+                  {/* 云端分支（火山/EL）/ VieNeu：语言（试听样本用）；火山另需槽位 ID */}
+                  {engine === 'vieneu' && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium">
+                        {t('language')}
+                      </label>
+                      <span className="text-sm text-muted-foreground">
+                        {t('langVi')}
+                      </span>
+                    </div>
+                  )}
+                  {engine !== 'zipvoice' && engine !== 'vieneu' && (
                     <div className="flex items-center gap-2">
                       <label className="text-sm font-medium">
                         {t('language')}
                       </label>
                       <Select
                         value={language}
-                        onValueChange={(v) => setLanguage(v as 'zh' | 'en')}
+                        onValueChange={(v) => setLanguage(v as 'zh' | 'en' | 'vi')}
                         disabled={creating}
                       >
                         <SelectTrigger className="h-8 w-28">
@@ -1247,6 +1268,7 @@ export default function CloneVoiceWizard({
                         <SelectContent>
                           <SelectItem value="zh">{t('langZh')}</SelectItem>
                           <SelectItem value="en">{t('langEn')}</SelectItem>
+                          <SelectItem value="vi">{t('langVi')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

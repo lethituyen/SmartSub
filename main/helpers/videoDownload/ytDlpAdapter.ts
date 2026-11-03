@@ -25,6 +25,11 @@ import {
   type DownloadJobResult,
   type PreflightOptions,
 } from './engineAdapter';
+import {
+  isDouyinUrl,
+  resolveDouyinMedia,
+  sanitizeTitle,
+} from './douyinCdpResolver';
 
 const PREFLIGHT_TIMEOUT_MS = 45_000;
 
@@ -82,6 +87,24 @@ export const ytDlpAdapter: DownloadEngineAdapter = {
     binaryPath: string,
     opts: PreflightOptions,
   ): Promise<DownloadEntryMeta> {
+    if (isDouyinUrl(opts.url)) {
+      try {
+        const media = await resolveDouyinMedia(opts.url);
+        const heights = Array.from(
+          new Set(media.streams.map((s) => s.height).filter((h) => h > 0)),
+        ).sort((a, b) => b - a);
+
+        return {
+          title: media.title,
+          duration: media.duration,
+          thumbnail: media.thumbnail,
+          heights: heights.length ? heights : [1080, 720, 540],
+        };
+      } catch {
+        // Fallback to standard yt-dlp preflight below
+      }
+    }
+
     const args = [
       ...commonArgs(),
       ...(opts.cookieFilePath ? ['--cookies', opts.cookieFilePath] : []),
@@ -103,6 +126,33 @@ export const ytDlpAdapter: DownloadEngineAdapter = {
     binaryPath: string,
     opts: DownloadJobOptions,
   ): Promise<DownloadJobResult> {
+    let targetDownloadUrl = opts.url;
+    let customOutputTemplate: string | null = null;
+
+    if (isDouyinUrl(opts.url)) {
+      try {
+        const media = await resolveDouyinMedia(opts.url);
+        let chosenUrl = media.defaultPlayUrl;
+        if (media.streams && media.streams.length > 0) {
+          if (opts.quality === '720p') {
+            const stream720 =
+              media.streams.find((s) => s.height <= 720) ||
+              media.streams[media.streams.length - 1];
+            chosenUrl = stream720.url || chosenUrl;
+          } else {
+            chosenUrl = media.streams[0].url || chosenUrl;
+          }
+        }
+        if (chosenUrl) {
+          targetDownloadUrl = chosenUrl;
+          const safeTitle = sanitizeTitle(media.title);
+          customOutputTemplate = `${safeTitle} [${media.awemeId}].%(ext)s`;
+        }
+      } catch {
+        // Fallback to raw opts.url below
+      }
+    }
+
     const args = [
       ...commonArgs(),
       ...(opts.cookieFilePath ? ['--cookies', opts.cookieFilePath] : []),
@@ -110,7 +160,7 @@ export const ytDlpAdapter: DownloadEngineAdapter = {
       '-P',
       opts.savePath,
       '-o',
-      OUTPUT_TEMPLATE,
+      customOutputTemplate || OUTPUT_TEMPLATE,
       '--ffmpeg-location',
       ffmpegLocation(),
       '--progress-template',
@@ -137,7 +187,7 @@ export const ytDlpAdapter: DownloadEngineAdapter = {
         : []),
       opts.expandPlaylist ? '--yes-playlist' : '--no-playlist',
       '--',
-      opts.url,
+      targetDownloadUrl,
     ];
 
     const outputPaths: string[] = [];

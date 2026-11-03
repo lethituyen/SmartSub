@@ -172,8 +172,7 @@ export default function SubtitleConverterPanel() {
               {t('dropFilesHere')}
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              支持 SRT, VTT, ASS, SSA, LRC, TXT 等任意字幕格式，自动修正
-              ANSI/GBK 乱码
+              {t('subtitleConverter.dropSubtitles')}
             </p>
           </div>
 
@@ -200,7 +199,7 @@ export default function SubtitleConverterPanel() {
             {files.length === 0 ? (
               <div className="flex h-48 flex-col items-center justify-center text-center text-xs text-muted-foreground">
                 <FileText className="h-8 w-8 text-muted-foreground/40 mb-2" />
-                <span>暂无待转换的字幕文件</span>
+                <span>{t('subtitleConverter.noFiles')}</span>
               </div>
             ) : (
               <ToolboxQueueList
@@ -238,7 +237,7 @@ export default function SubtitleConverterPanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              转换设置
+              {t('subtitleConverter.settingsTitle')}
             </h3>
 
             {/* 目标格式 */}
@@ -255,11 +254,11 @@ export default function SubtitleConverterPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="srt">SRT (SubRip - 通用标准)</SelectItem>
-                  <SelectItem value="vtt">VTT (WebVTT - 网页流媒体)</SelectItem>
-                  <SelectItem value="ass">ASS (高级样式字幕)</SelectItem>
-                  <SelectItem value="lrc">LRC (歌词格式)</SelectItem>
-                  <SelectItem value="txt">TXT (纯文本)</SelectItem>
+                  <SelectItem value="srt">{t('subtitleConverter.formatSrt')}</SelectItem>
+                  <SelectItem value="vtt">{t('subtitleConverter.formatVtt')}</SelectItem>
+                  <SelectItem value="ass">{t('subtitleConverter.formatAss')}</SelectItem>
+                  <SelectItem value="lrc">{t('subtitleConverter.formatLrc')}</SelectItem>
+                  <SelectItem value="txt">{t('subtitleConverter.formatTxt')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -278,12 +277,12 @@ export default function SubtitleConverterPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="utf-8">UTF-8 (标准推荐)</SelectItem>
+                  <SelectItem value="utf-8">{t('subtitleConverter.encodingUtf8')}</SelectItem>
                   <SelectItem value="utf-8-bom">
-                    UTF-8 with BOM (兼容旧播放器)
+                    {t('subtitleConverter.encodingUtf8Bom')}
                   </SelectItem>
                   <SelectItem value="gb18030">
-                    GB18030 / ANSI (Windows 专用)
+                    {t('subtitleConverter.encodingGb18030')}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -335,7 +334,7 @@ export default function SubtitleConverterPanel() {
                   {t('subtitleConverter.cleanFormatting')}
                 </Label>
                 <p className="text-[11px] text-muted-foreground">
-                  去除 ASS 特效及 HTML 字体颜色代码
+                  {t('subtitleConverter.cleanFormattingDesc')}
                 </p>
               </div>
               <Switch
@@ -350,10 +349,10 @@ export default function SubtitleConverterPanel() {
               <div className="flex items-center justify-between pt-1">
                 <div className="space-y-0.5">
                   <Label className="text-xs text-foreground">
-                    保留时间轴标记
+                    {t('subtitleConverter.keepTimestamp')}
                   </Label>
                   <p className="text-[11px] text-muted-foreground">
-                    在纯文本中保留每句的起止时间
+                    {t('subtitleConverter.keepTimestampDesc')}
                   </p>
                 </div>
                 <Switch
@@ -431,7 +430,7 @@ export default function SubtitleConverterPanel() {
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold flex items-center gap-2">
               <FileText className="h-4 w-4 text-primary" />
-              {previewData?.fileName || '字幕预览'}
+              {previewData?.fileName || t('subtitleConverter.previewTitle')}
             </DialogTitle>
           </DialogHeader>
 
@@ -443,14 +442,14 @@ export default function SubtitleConverterPanel() {
             <div className="space-y-3 py-2">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>
-                  探测格式:{' '}
+                  {t('subtitleConverter.detectedFormat')}
                   <b className="text-foreground">
                     {previewData?.format?.toUpperCase()}
                   </b>
                 </span>
                 <span>•</span>
                 <span>
-                  检测编码:{' '}
+                  {t('subtitleConverter.detectedCharset')}
                   <b className="text-foreground">{previewData?.encoding}</b>
                 </span>
               </div>
@@ -458,7 +457,7 @@ export default function SubtitleConverterPanel() {
               <div className="max-h-64 overflow-y-auto space-y-2 rounded-lg border border-border bg-muted/30 p-3 font-mono text-[11px]">
                 {previewData?.cues?.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">
-                    无条目内容
+                    {t('subtitleConverter.noCues')}
                   </p>
                 ) : (
                   previewData?.cues?.map((cue, idx) => (
@@ -487,7 +486,7 @@ export default function SubtitleConverterPanel() {
               onClick={() => setPreviewOpen(false)}
               className="text-xs"
             >
-              关闭
+              {t('subtitleConverter.close')}
             </Button>
           </DialogFooter>
         </DialogContent>

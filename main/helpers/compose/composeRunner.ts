@@ -56,7 +56,6 @@ import { probeVideoInfo } from '../toolbox/videoTrimmer';
 import { assertValidSubtitleStyle } from '../../../types/subtitleStyleValidation';
 import { assertComposeOutputWritable } from '../../../types/composeContainer';
 import { prepareSubtitleFonts } from '../fontResolver';
-import { COMPATIBLE_PIXEL_FORMAT } from '../videoEncoding';
 
 const ffmpegPath = ffmpegStatic.replace('app.asar', 'app.asar.unpacked');
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -122,16 +121,7 @@ function buildCpuEncoding(
   );
   return {
     encoder: 'libx264',
-    args: [
-      '-c:v',
-      'libx264',
-      '-preset',
-      'medium',
-      '-crf',
-      String(crf),
-      '-pix_fmt',
-      COMPATIBLE_PIXEL_FORMAT,
-    ],
+    args: ['-c:v', 'libx264', '-preset', 'medium', '-crf', String(crf)],
     needsNv12: false,
   };
 }
@@ -289,12 +279,12 @@ interface PreparedHardSubtitle {
   encoder: ResolvedVideoEncoding['encoder'];
   tempFiles: string[];
   videoHeight: number;
+  videoWidth?: number;
   videoQuality: VideoQuality;
 }
 
 /** 运行时挂载：runner 向队列暴露"杀当前 ffmpeg"的取消入口 */
 export interface ComposeRunContext {
-  beforePublish?: () => Promise<void>;
   jobId: string;
   onProgress?: (progress: MergeProgress) => void;
   /** 注册取消函数（每次 ffmpeg 启动前更新；队列 cancel 时调用） */
@@ -443,13 +433,13 @@ export async function runComposeJob(
     output = createComposeOutput(config.outputPath, inputs);
     outputPath = output.staged;
     const embeddedSubtitles =
-      subtitle.mode !== 'hard'
+      subtitle.mode === 'soft'
         ? await scanEmbeddedSubtitles(videoPath, publication.signal)
         : undefined;
-    const mediaInfo = await probeVideoInfo(videoPath, publication.signal, {
-      allowUnknownDuration: true,
-    });
-    const hasOriginalAudio = mediaInfo.hasAudio;
+    const hasOriginalAudio =
+      audio.mode === 'mix'
+        ? (await probeVideoInfo(videoPath, publication.signal)).hasAudio
+        : undefined;
     // ── 解析硬烧字幕（滤镜 + 编码参数），探测分辨率/时长 ─────────────────────
     let prepared: PreparedHardSubtitle | null = null;
     if (subtitle.mode === 'hard') {
@@ -474,7 +464,6 @@ export async function runComposeJob(
         subtitle: planSubtitle,
         audio,
         embeddedSubtitles,
-        audioCodecs: mediaInfo.audioCodecs,
         hasOriginalAudio,
       },
       planOptions,
@@ -532,7 +521,6 @@ export async function runComposeJob(
             },
             audio,
             hasOriginalAudio,
-            audioCodecs: mediaInfo.audioCodecs,
           },
           planOptions,
         );
@@ -543,7 +531,6 @@ export async function runComposeJob(
     }
 
     if (cancelled) throw new Error(MERGE_CANCELLED);
-    await ctx.beforePublish?.();
     const published = await output.publish(publication.signal);
     logMessage(`合成作业完成: ${published}`, 'info');
     emit({ percent: 100, timeMark: '', targetSize: 0, status: 'completed' });
@@ -601,15 +588,20 @@ async function prepareHardSubtitle(
     style,
     videoQuality = 'original',
     encoderMode = 'cpu',
+    blurOldSubtitles,
+    watermark = (config as any).watermark,
+    antiDuplicate = (config as any).antiDuplicate,
   } = subtitle;
 
   // 分辨率/时长探测（ffprobe → 打包 ffmpeg 兜底）
   let videoHeight = 0;
+  let videoWidth = 0;
   let totalDurationSec = 0;
   try {
     const videoInfo = await getVideoInfo(videoPath);
     if (videoInfo.width > 0 && videoInfo.height > 0) {
       videoHeight = videoInfo.height;
+      videoWidth = videoInfo.width;
     }
     totalDurationSec = videoInfo.duration || 0;
   } catch (err) {
@@ -622,6 +614,7 @@ async function prepareHardSubtitle(
     const probed = await probeResolutionViaFfmpeg(videoPath);
     if (probed) {
       videoHeight = probed.height;
+      videoWidth = probed.width;
       if (totalDurationSec <= 0 && probed.durationSec > 0) {
         totalDurationSec = probed.durationSec;
       }
@@ -632,6 +625,18 @@ async function prepareHardSubtitle(
     }
   }
   if (totalDurationSec > 0) onDuration(totalDurationSec);
+
+  // 水印尺寸/宽高比探测（用于背景模糊自适应计算）
+  if (watermark?.enabled && watermark.imagePath && !watermark.aspectRatio) {
+    try {
+      const imgInfo = await probeResolutionViaFfmpeg(watermark.imagePath);
+      if (imgInfo && imgInfo.width > 0 && imgInfo.height > 0) {
+        watermark.aspectRatio = imgInfo.width / imgInfo.height;
+      }
+    } catch {
+      // 容错使用默认比率
+    }
+  }
 
   // Preview and export consume the same ASS, including native ASS/SSA input.
   const subtitleContent = fs.readFileSync(subtitlePath, 'utf-8');
@@ -669,10 +674,16 @@ async function prepareHardSubtitle(
       filter,
       encoderArgs: encoding.args,
       needsNv12: encoding.needsNv12,
+      blurOldSubtitles,
+      watermark,
+      antiDuplicate,
+      videoWidth,
+      videoHeight,
     },
     encoder: encoding.encoder,
     tempFiles,
     videoHeight,
+    videoWidth,
     videoQuality,
   };
 }

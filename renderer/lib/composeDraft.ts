@@ -4,6 +4,9 @@ import type {
   MergeOutputMode,
   VideoQuality,
   EncoderMode,
+  BlurSubtitleConfig,
+  WatermarkConfig,
+  AntiDuplicateConfig,
 } from '../../types/subtitleMerge';
 
 export interface ComposeDocument {
@@ -18,6 +21,9 @@ export interface ComposeDocument {
   softContainer: 'mkv' | 'mp4';
   videoQuality: VideoQuality;
   encoderMode: EncoderMode;
+  blurOldSubtitles?: BlurSubtitleConfig;
+  watermark?: WatermarkConfig;
+  antiDuplicate?: AntiDuplicateConfig;
 }
 // Drafts must preserve partially typed fields as well as finished settings.
 const color = z.string();
@@ -70,6 +76,48 @@ const documentSchema = z.object({
   softContainer: z.enum(['mkv', 'mp4']),
   videoQuality: z.enum(['original', 'high', 'standard']),
   encoderMode: z.enum(['cpu', 'hardware']),
+  blurOldSubtitles: z
+    .object({
+      enabled: z.boolean(),
+      mode: z.enum(['auto', 'manual']).optional(),
+      yPercent: numeric.optional(),
+      heightPercent: numeric.optional(),
+      widthPercent: numeric.optional(),
+      blurStrength: numeric.optional(),
+    })
+    .optional(),
+  watermark: z
+    .object({
+      enabled: z.boolean(),
+      imagePath: z.string().optional(),
+      positionPreset: z
+        .enum(['top-left', 'top-right', 'bottom-left', 'bottom-right', 'custom'])
+        .optional(),
+      xPercent: numeric.optional(),
+      yPercent: numeric.optional(),
+      scalePercent: numeric.optional(),
+      opacity: numeric.optional(),
+      blurBackground: z.boolean().optional(),
+      aspectRatio: numeric.optional(),
+    })
+    .optional(),
+  antiDuplicate: z
+    .object({
+      enabled: z.boolean(),
+      preset: z.enum(['safe', 'balanced', 'aggressive', 'custom']).optional(),
+      microZoomPercent: numeric.optional(),
+      mirrorFlip: z.boolean().optional(),
+      microNoise: z.boolean().optional(),
+      microNoiseStrength: numeric.optional(),
+      colorShift: z.boolean().optional(),
+      vignette: z.boolean().optional(),
+      speedMultiplier: numeric.optional(),
+      pitchShift: z.boolean().optional(),
+      pitchSemitones: numeric.optional(),
+      randomGop: z.boolean().optional(),
+      clearMetadata: z.boolean().optional(),
+    })
+    .optional(),
 });
 const schema = z.object({
   version: z.literal(1),

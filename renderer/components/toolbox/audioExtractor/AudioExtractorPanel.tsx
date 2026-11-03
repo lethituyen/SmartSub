@@ -100,16 +100,16 @@ export default function AudioExtractorPanel() {
               <UploadCloud className="h-6 w-6" />
             </div>
             <p className="mt-2.5 text-xs font-medium text-foreground">
-              拖拽视频文件到此处，或点击浏览选择
+              {t('audioExtractor.dropAudio')}
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              支持批量提取多个视频音轨，秒级抽离音频
+              {t('audioExtractor.dropAudioDesc')}
             </p>
           </div>
 
           <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
             <span className="text-xs font-medium text-foreground">
-              待处理视频: {files.length} 个
+              {t('audioExtractor.pendingVideos', { count: files.length })}
             </span>
             {files.length > 0 && (
               <Button
@@ -119,7 +119,7 @@ export default function AudioExtractorPanel() {
                 disabled={isProcessing}
                 className="h-7 text-xs text-muted-foreground hover:text-destructive"
               >
-                清空列表
+                {t('audioExtractor.clearList')}
               </Button>
             )}
           </div>
@@ -128,7 +128,7 @@ export default function AudioExtractorPanel() {
             {files.length === 0 ? (
               <div className="flex h-48 flex-col items-center justify-center text-center text-xs text-muted-foreground">
                 <Music className="h-8 w-8 text-muted-foreground/40 mb-2" />
-                <span>暂无待处理的视频</span>
+                <span>{t('audioExtractor.noPendingVideos')}</span>
               </div>
             ) : (
               <ToolboxQueueList
@@ -147,12 +147,12 @@ export default function AudioExtractorPanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              音频选项
+              {t('audioExtractor.optionsTitle')}
             </h3>
 
             {/* 格式选择 */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">目标格式</Label>
+              <Label className="text-xs text-muted-foreground">{t('audioExtractor.format')}</Label>
               <Select
                 value={format}
                 onValueChange={(v: any) => setFormat(v)}
@@ -162,11 +162,11 @@ export default function AudioExtractorPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mp3">MP3 (通用兼容)</SelectItem>
-                  <SelectItem value="wav">WAV (无损 / 语音识别)</SelectItem>
-                  <SelectItem value="aac">AAC (高质量流媒体)</SelectItem>
-                  <SelectItem value="m4a">M4A (Apple 生态)</SelectItem>
-                  <SelectItem value="flac">FLAC (高解析无损)</SelectItem>
+                  <SelectItem value="mp3">{t('audioExtractor.formatMp3')}</SelectItem>
+                  <SelectItem value="wav">{t('audioExtractor.formatWav')}</SelectItem>
+                  <SelectItem value="aac">{t('audioExtractor.formatAac')}</SelectItem>
+                  <SelectItem value="m4a">{t('audioExtractor.formatM4a')}</SelectItem>
+                  <SelectItem value="flac">{t('audioExtractor.formatFlac')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -175,7 +175,7 @@ export default function AudioExtractorPanel() {
             {['mp3', 'aac', 'm4a'].includes(format) && (
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  音频码率
+                  {t('audioExtractor.bitrate')}
                 </Label>
                 <Select
                   value={bitrate}
@@ -186,10 +186,10 @@ export default function AudioExtractorPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="320k">320 kbps (最高品质)</SelectItem>
-                    <SelectItem value="256k">256 kbps (高品质)</SelectItem>
-                    <SelectItem value="192k">192 kbps (标准音乐)</SelectItem>
-                    <SelectItem value="128k">128 kbps (高压缩语音)</SelectItem>
+                    <SelectItem value="320k">{t('audioExtractor.bitrate320')}</SelectItem>
+                    <SelectItem value="256k">{t('audioExtractor.bitrate256')}</SelectItem>
+                    <SelectItem value="192k">{t('audioExtractor.bitrate192')}</SelectItem>
+                    <SelectItem value="128k">{t('audioExtractor.bitrate128')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -199,7 +199,7 @@ export default function AudioExtractorPanel() {
             {format === 'wav' && (
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  WAV 音轨规范
+                  {t('audioExtractor.wavSpec')}
                 </Label>
                 <Select
                   value={wavPreset}
@@ -210,9 +210,9 @@ export default function AudioExtractorPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="standard">原音频采样率与声道</SelectItem>
+                    <SelectItem value="standard">{t('audioExtractor.presetStandard')}</SelectItem>
                     <SelectItem value="asr_16k_mono">
-                      16kHz 单声道 (ASR 转写标准)
+                      {t('audioExtractor.presetAsr')}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -269,10 +269,10 @@ export default function AudioExtractorPanel() {
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  提取中...
+                  {t('audioExtractor.extracting')}
                 </>
               ) : (
-                '开始提取音频'
+                t('audioExtractor.startExtract')
               )}
             </Button>
           </div>

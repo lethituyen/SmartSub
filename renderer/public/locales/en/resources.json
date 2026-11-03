@@ -448,6 +448,7 @@
   "asrXiaomiMimoApiKeyTips": "API key created on the <a href='https://mimo.mi.com/' style='color: blue'>MiMo platform</a>. ASR is billed by audio duration; the current pay-as-you-go price in China is CNY 0.5/hour. Check console balance and usage for any promotional credit. Stored locally only.",
   "phXiaomiMimoApiKey": "sk-... or tp-...",
   "asrModelsXiaomiMimoTips": "Fixed to mimo-v2.5-asr. It supports Chinese, English, or automatic detection. The API returns no word or segment timestamps, so SmartSub splits audio at silence into roughly 20-second chunks to build a coarse timeline.",
+  "asrModelsJianyingTips": "JianYing/Douyin/CapCut official fast ASR service (free & built-in): jianying-default preserves native Douyin short video sentence segmentation; jianying-words provides word-level timestamps re-segmented by SmartSub.",
   "asrApiUrlXiaomiMimoTips": "Pay-as-you-go API keys use https://api.xiaomimimo.com/v1. A Token Plan tp- key must use the dedicated Base URL shown in its console. You may paste the full /chat/completions URL; the app normalizes it.",
   "dubbingBlock": {
     "localModels": "Local dubbing models",
@@ -473,7 +474,14 @@
     "testSuccess": "Synthesis OK, connection works",
     "cloneModelIntro": "Zero-shot voice cloning model (ZipVoice): no built-in voices — create cloned voices in \"My Voices\" from your own recordings to dub. Slower than regular models.",
     "clonePool": "Voices come from \"My Voices\"",
-    "goCreateVoice": "Create a cloned voice"
+    "goCreateVoice": "Create a cloned voice",
+    "downloadAllVoices": "Download all Vietnamese voices (15 voices)",
+    "downloadSingleVoice": "Download this voice",
+    "vietnameseModelIntro": "Piper Vietnamese TTS (VITS): Supports 15 natural Vietnamese voices (North/Central/South accents), running 100% offline at ultra-fast speeds.",
+    "voiceList": "Voice list",
+    "previewVoice": "Preview",
+    "previewFailed": "Failed to preview voice",
+    "deleteVoice": "Delete voice"
   },
   "ttsApiUrlTips": "Base URL of the OpenAI-compatible TTS endpoint, e.g. https://api.openai.com/v1",
   "ttsApiKeyTips": "API key for this endpoint",

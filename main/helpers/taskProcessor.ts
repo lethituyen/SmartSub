@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import { backgroundEvent } from '../automation/events';
 import { BrowserWindow, Notification } from 'electron';
 import { processFile } from './fileProcessor';
-import { getPath } from './whisper';
+import { checkOpenAiWhisper, getPath } from './whisper';
 import { logMessage, store } from './storeManager';
 import path from 'path';
 import { randomUUID } from 'crypto';
@@ -14,13 +14,6 @@ import type {
   TaskSubmissionResult,
 } from '../../types/taskSubmission';
 import { persistTaskSubmission } from './taskSubmission';
-import {
-  acceptTaskRun,
-  taskRunService,
-  setLegacyTaskBusyResolver,
-} from './taskRuns/access';
-import { isRunLocked } from '../../types/taskRun';
-import { executeFileRun } from './taskRuns/execution';
 import { resolveProviderFallbacks } from './providerMigration';
 import { applyTaskEventToProjects } from './taskManager';
 import { createExtendedProvider } from './extendedProvider';
@@ -77,7 +70,6 @@ function wrapTaskEvent(event: any) {
 }
 
 interface QueueItem {
-  runId?: string;
   file: IFiles;
   formData: any;
   projectId: string;
@@ -105,6 +97,7 @@ let processingQueue: QueueItem[] = [];
 const projectRuntimes = new Map<string, ProjectRuntime>();
 let isProcessing = false;
 let maxConcurrentTasks = 3;
+let hasOpenAiWhisper = false;
 let activeTasksCount = 0;
 
 /** 最近一次 handleTask 的 event：resume 触发派发时复用 */
@@ -147,7 +140,6 @@ export function isTranscriptionBusy(): boolean {
 
 export function isTaskProjectBusy(projectId: string): boolean {
   return (
-    isRunLocked(taskRunService()?.get(projectId)) ||
     (projectRuntimes.get(projectId)?.active || 0) > 0 ||
     processingQueue.some((item) => item.projectId === projectId)
   );
@@ -201,7 +193,11 @@ function queuedCount(projectId: string): number {
   return processingQueue.filter((item) => item.projectId === projectId).length;
 }
 
-function sendTaskComplete(event: any, projectId: string, status: string) {
+function sendTaskComplete(
+  event: any,
+  projectId: string,
+  status: 'completed' | 'cancelled',
+) {
   try {
     event?.sender?.send('taskComplete', { projectId, status });
   } catch (error) {
@@ -214,19 +210,7 @@ function finalizeProjectIfDrained(event: any, projectId: string) {
   const runtime = projectRuntimes.get(projectId);
   if (!runtime) return;
   if (runtime.active > 0 || queuedCount(projectId) > 0) return;
-  const run = taskRunService()?.get(projectId);
-  if (
-    run &&
-    ['paused', 'pausing', 'queued', 'running', 'preparing'].includes(run.status)
-  )
-    return;
-  const status = run
-    ? run.status === 'succeeded'
-      ? 'completed'
-      : run.status
-    : runtime.cancelled
-      ? 'cancelled'
-      : 'completed';
+  const status = runtime.cancelled ? 'cancelled' : 'completed';
   projectRuntimes.delete(projectId);
   updateTaskbarProgress();
   sendTaskComplete(event, projectId, status);
@@ -236,7 +220,6 @@ function finalizeProjectIfDrained(event: any, projectId: string) {
 /** 任务派发共用体：渲染层 handleTask 与主进程内部派发（闸门放行）同路径。 */
 function startTaskRun(event: any, input: TaskSubmission): TaskSubmissionResult {
   const pid = input.projectId;
-  const managed = acceptTaskRun(input);
   const busyFiles = new Set([
     ...Array.from(projectRuntimes.get(pid)?.activeFiles || []),
     ...processingQueue
@@ -246,15 +229,7 @@ function startTaskRun(event: any, input: TaskSubmission): TaskSubmissionResult {
   const {
     result,
     submission: { files, formData },
-  } = managed
-    ? {
-        result: managed.result,
-        submission: {
-          files: managed.run.files.map((f) => f.projection),
-          formData: managed.run.config,
-        },
-      }
-    : persistTaskSubmission(input, busyFiles);
+  } = persistTaskSubmission(input, busyFiles);
   if (result.duplicate) return result;
   // The durable intent and in-memory queue are published without an await gap.
   dispatchEvent = event;
@@ -266,12 +241,7 @@ function startTaskRun(event: any, input: TaskSubmission): TaskSubmissionResult {
     runtime.controller = new AbortController();
   }
   processingQueue.push(
-    ...files.map((file) => ({
-      file,
-      formData,
-      projectId: pid,
-      runId: managed?.run.runId,
-    })),
+    ...files.map((file) => ({ file, formData, projectId: pid })),
   );
   runtime.total += files.length;
   updateTaskbarProgress();
@@ -282,13 +252,18 @@ function startTaskRun(event: any, input: TaskSubmission): TaskSubmissionResult {
     Number.isInteger(concurrency) && concurrency > 0 ? concurrency : 3;
   if (!isProcessing) {
     isProcessing = true;
-    if (managed) void processNextTasks(event);
-    else void initializeTaskRun(event, formData, files);
+    void initializeTaskRun(event, formData, files);
   }
   return result;
 }
 
 async function initializeTaskRun(event: any, formData: any, files: IFiles[]) {
+  try {
+    hasOpenAiWhisper = await checkOpenAiWhisper();
+  } catch (error) {
+    hasOpenAiWhisper = false;
+    logMessage(`Whisper CLI detection failed: ${error}`, 'warning');
+  }
   // 预热 sidecar：把冷启动成本移出首个文件关键路径（faster-whisper 等需运行时引擎）。
   // ensureStarted 成功后再 prewarm（按引擎预加载模型），与首个文件的音频抽取并行，
   // 避免 FunASR 等首个 transcribe 因首次加载原生库/ONNX 过慢而长时间卡在 0%。
@@ -327,64 +302,6 @@ async function initializeTaskRun(event: any, formData: any, files: IFiles[]) {
  * 主进程内部派发入口（闸门放行续跑用）：以主窗口 webContents 合成事件 sender，
  * 走与渲染层 handleTask 完全相同的队列/并发/快照路径。窗口不可用时返回 false。
  */
-function queueManagedRun(
-  projectId: string,
-  fileIds?: string[],
-  event = backgroundEvent,
-) {
-  const run = taskRunService()?.get(projectId);
-  if (!run || !['queued', 'running', 'waiting_review'].includes(run.status))
-    return;
-  const runtime = ensureRuntime(projectId);
-  runtime.paused = false;
-  runtime.cancelled = false;
-  if (runtime.controller.signal.aborted)
-    runtime.controller = new AbortController();
-  for (const file of run.files) {
-    if (fileIds && !fileIds.includes(file.fileId)) continue;
-    if (
-      runtime.activeFiles.has(file.fileId) ||
-      processingQueue.some(
-        (item) =>
-          item.projectId === projectId && item.file.uuid === file.fileId,
-      )
-    )
-      continue;
-    if (
-      !Object.values(file.stages).some(
-        (stage) =>
-          stage.status === 'pending' &&
-          stage.dependencies.every(
-            (id) => file.stages[id]?.status === 'succeeded',
-          ),
-      )
-    )
-      continue;
-    processingQueue.push({
-      projectId,
-      runId: run.runId,
-      file: file.projection,
-      formData: run.config,
-    });
-  }
-  runtime.total = run.files.length;
-  dispatchEvent = event;
-  isProcessing = true;
-  void processNextTasks(event);
-}
-function cancelManagedRuntime(projectId: string, event: any) {
-  processingQueue = processingQueue.filter(
-    (item) => item.projectId !== projectId,
-  );
-  const runtime = projectRuntimes.get(projectId);
-  if (runtime) {
-    runtime.cancelled = true;
-    runtime.paused = false;
-    runtime.controller.abort();
-    killFfmpegForFiles([...runtime.activeFiles]);
-  }
-  finalizeProjectIfDrained(event, projectId);
-}
 export function enqueueProjectFiles(
   projectId: string,
   files: IFiles[],
@@ -392,20 +309,10 @@ export function enqueueProjectFiles(
 ): boolean {
   const event = backgroundEvent;
   try {
-    const run = taskRunService()?.get(projectId);
-    if (run && isRunLocked(run)) {
-      queueManagedRun(
-        projectId,
-        files.map((file) => file.uuid),
-        event,
-      );
-      return true;
-    }
     return startTaskRun(event, {
       files,
       formData,
       projectId,
-      resumeLegacy: true,
       requestId: randomUUID(),
     }).success;
   } catch (error) {
@@ -422,23 +329,7 @@ export function enqueueTaskSubmission(
 }
 
 export function setupTaskProcessor(mainWindow: BrowserWindow) {
-  setLegacyTaskBusyResolver(
-    (projectId) =>
-      (projectRuntimes.get(projectId)?.active || 0) > 0 ||
-      processingQueue.some((item) => item.projectId === projectId),
-  );
   progressWindow = mainWindow;
-  ipcMain.handle('taskRuns:command', (event, input) => {
-    const service = taskRunService();
-    if (!service) throw new Error('TASK_RUNTIME_NOT_INITIALIZED');
-    const run = service.command(input);
-    if (input.command === 'pause') ensureRuntime(input.projectId).paused = true;
-    if (input.command === 'resume' || input.command === 'retry')
-      queueManagedRun(input.projectId, undefined, event);
-    if (input.command === 'cancel')
-      cancelManagedRuntime(input.projectId, event);
-    return run;
-  });
   ipcMain.handle(
     'submitTask',
     (event, payload: TaskSubmission): TaskSubmissionResult => {
@@ -475,27 +366,11 @@ export function setupTaskProcessor(mainWindow: BrowserWindow) {
 
   ipcMain.on('pauseTask', (event, projectId?: string) => {
     if (projectId) {
-      const run = taskRunService()?.get(projectId);
-      if (run)
-        taskRunService()!.command({
-          projectId,
-          expectedRunId: run.runId,
-          requestId: randomUUID(),
-          command: 'pause',
-        });
       ensureRuntime(projectId).paused = true;
       syncTranscriptionPowerSaveBlocker();
       return;
     }
-    projectRuntimes.forEach((runtime, id) => {
-      const run = taskRunService()?.get(id);
-      if (run && isRunLocked(run))
-        taskRunService()!.command({
-          projectId: id,
-          expectedRunId: run.runId,
-          requestId: randomUUID(),
-          command: 'pause',
-        });
+    projectRuntimes.forEach((runtime) => {
       runtime.paused = true;
     });
     syncTranscriptionPowerSaveBlocker();
@@ -503,32 +378,9 @@ export function setupTaskProcessor(mainWindow: BrowserWindow) {
 
   ipcMain.on('resumeTask', (event, projectId?: string) => {
     if (projectId) {
-      const run = taskRunService()?.get(projectId);
-      if (run) {
-        taskRunService()!.command({
-          projectId,
-          expectedRunId: run.runId,
-          requestId: randomUUID(),
-          command: ['failed', 'interrupted'].includes(run.status)
-            ? 'retry'
-            : 'resume',
-        });
-        queueManagedRun(projectId, undefined, event);
-        return;
-      }
       ensureRuntime(projectId).paused = false;
     } else {
-      projectRuntimes.forEach((runtime, id) => {
-        const run = taskRunService()?.get(id);
-        if (run?.status === 'paused') {
-          taskRunService()!.command({
-            projectId: id,
-            expectedRunId: run.runId,
-            requestId: randomUUID(),
-            command: 'resume',
-          });
-          queueManagedRun(id, undefined, event);
-        }
+      projectRuntimes.forEach((runtime) => {
         runtime.paused = false;
       });
     }
@@ -549,14 +401,6 @@ export function setupTaskProcessor(mainWindow: BrowserWindow) {
           ]),
         );
     for (const id of ids) {
-      const run = taskRunService()?.get(id);
-      if (run && isRunLocked(run))
-        taskRunService()!.command({
-          projectId: id,
-          expectedRunId: run.runId,
-          requestId: randomUUID(),
-          command: 'cancel',
-        });
       const beforeCount = processingQueue.length;
       processingQueue = processingQueue.filter((item) => item.projectId !== id);
       const removedCount = beforeCount - processingQueue.length;
@@ -607,13 +451,6 @@ export function setupTaskProcessor(mainWindow: BrowserWindow) {
         : 'idle';
     }
     const runtime = projectRuntimes.get(projectId);
-    const run = taskRunService()?.get(projectId);
-    if (run)
-      return ['succeeded', 'failed', 'interrupted', 'cancelled'].includes(
-        run.status,
-      )
-        ? 'idle'
-        : run.status;
     const queued = queuedCount(projectId);
     if (!runtime) return queued > 0 ? 'running' : 'idle';
     if (runtime.cancelled) return runtime.active > 0 ? 'cancelling' : 'idle';
@@ -728,25 +565,6 @@ async function processNextTasks(event) {
         runtime.active++;
         if (fileUuid) runtime.activeFiles.add(fileUuid);
         try {
-          if (task.runId) {
-            const { createDesktopStageExecutor } = await import(
-              './taskRuns/adapters'
-            );
-            const result = await executeFileRun({
-              service: taskRunService()!,
-              projectId: task.projectId,
-              runId: task.runId,
-              fileId: fileUuid,
-              signal: runtime.controller.signal,
-              execute: createDesktopStageExecutor(event.sender),
-            });
-            if (result === 'paused') {
-              runtime.paused = true;
-              processingQueue.push(task);
-              runtime.completed--;
-            }
-            return;
-          }
           const baseProvider = translationProviders.find(
             (p) => p.id === task.formData.translateProvider,
           );
@@ -777,6 +595,7 @@ async function processNextTasks(event) {
                 wrapTaskEvent(event),
                 task.file as IFiles,
                 task.formData,
+                hasOpenAiWhisper,
                 extendedProvider,
                 providerCandidates.slice(1),
               ),

@@ -13,6 +13,7 @@ const testFiles = [
   'test-bilingual-subtitles.ts',
   'test-audio-extractor.ts',
   'test-embedded-subtitles.cjs',
+  'test-video-ocr.ts',
 ];
 
 console.log('=== Running All Toolbox Unit Tests ===\n');

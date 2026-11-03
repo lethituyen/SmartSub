@@ -126,6 +126,7 @@ interface RowLabels {
   translationFailedPlaceholder: string;
   aiOptimize: string;
   split: string;
+  mergeWithNext: string;
   deleteRow: string;
   timeInvalidFormat: string;
   timeEditHint: string;
@@ -165,6 +166,7 @@ interface SubtitleRowProps {
   fontScale: 's' | 'm' | 'l';
   showAiOptimize: boolean;
   showSplit: boolean;
+  showMergeWithNext?: boolean;
   showDelete: boolean;
   labels: RowLabels;
   onRowClick: (index: number, shiftKey: boolean) => void;
@@ -184,6 +186,7 @@ interface SubtitleRowProps {
   ) => void;
   onAiOptimize: (index: number) => void;
   onSplit: (index: number) => void;
+  onMergeWithNext?: (index: number) => void;
   onDelete: (index: number) => void;
   onTimeCommit: (
     index: number,
@@ -220,6 +223,7 @@ const SubtitleRow = memo(function SubtitleRow({
   fontScale,
   showAiOptimize,
   showSplit,
+  showMergeWithNext,
   showDelete,
   labels,
   onRowClick,
@@ -229,6 +233,7 @@ const SubtitleRow = memo(function SubtitleRow({
   onTargetKeyDown,
   onAiOptimize,
   onSplit,
+  onMergeWithNext,
   onDelete,
   onTimeCommit,
   speakers,
@@ -406,6 +411,27 @@ const SubtitleRow = memo(function SubtitleRow({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top">{labels.split}</TooltipContent>
+              </Tooltip>
+            )}
+            {showMergeWithNext && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5"
+                    aria-label={labels.mergeWithNext}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMergeWithNext?.(index);
+                    }}
+                  >
+                    <Combine className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {labels.mergeWithNext}
+                </TooltipContent>
               </Tooltip>
             )}
             {showDelete && (
@@ -932,6 +958,15 @@ const SubtitleList: React.FC<SubtitleListProps> = ({
     latestRef.current.onDeleteClick?.(index);
   }, []);
 
+  const handleMergeWithNext = useCallback(
+    (index: number) => {
+      if (onMergeRange && index >= 0 && index < subtitleCount - 1) {
+        onMergeRange(index, index + 2);
+      }
+    },
+    [onMergeRange, subtitleCount],
+  );
+
   const onTimeCommit = useCallback(
     (index: number, startSec: number, endSec: number): string | null => {
       return latestRef.current.onTimeChange?.(index, startSec, endSec) ?? null;
@@ -949,6 +984,7 @@ const SubtitleList: React.FC<SubtitleListProps> = ({
       translationFailedPlaceholder: t('translationFailedPlaceholder'),
       aiOptimize: t('aiOptimize'),
       split: t('split'),
+      mergeWithNext: t('mergeNextHint'),
       deleteRow: t('delete'),
       timeInvalidFormat: t('timeEditInvalidFormat'),
       timeEditHint: t('timeEditHint'),
@@ -1206,6 +1242,7 @@ const SubtitleList: React.FC<SubtitleListProps> = ({
                     fontScale={fontScale}
                     showAiOptimize={!!onAiOptimizeClick}
                     showSplit={!!onSplitClick}
+                    showMergeWithNext={!!onMergeRange && index < subtitleCount - 1}
                     showDelete={!!onDeleteClick}
                     labels={labels}
                     onRowClick={onRowClick}
@@ -1215,6 +1252,7 @@ const SubtitleList: React.FC<SubtitleListProps> = ({
                     onTargetKeyDown={onTargetKeyDown}
                     onAiOptimize={onAiOptimize}
                     onSplit={onSplit}
+                    onMergeWithNext={onMergeRange ? handleMergeWithNext : undefined}
                     onDelete={onDelete}
                     onTimeCommit={onTimeCommit}
                     speakers={speakers}

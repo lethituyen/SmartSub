@@ -77,7 +77,6 @@ interface ProofreadEditorProps {
   file: PendingFile;
   onMarkComplete: () => void | Promise<void>;
   onBack: () => void;
-  beforeReleaseRef?: React.MutableRefObject<(() => Promise<boolean>) | null>;
 }
 
 export default function ProofreadEditor({
@@ -86,7 +85,6 @@ export default function ProofreadEditor({
   file,
   onMarkComplete,
   onBack,
-  beforeReleaseRef,
 }: ProofreadEditorProps) {
   const { t } = useTranslation('home');
   const { t: commonT } = useTranslation('common');
@@ -165,24 +163,6 @@ export default function ProofreadEditor({
     handleCursorPositionChange,
     getCursorPosition,
   } = useStandaloneSubtitles(config, true, true);
-  useEffect(() => {
-    if (!beforeReleaseRef) return;
-    beforeReleaseRef.current = async () => {
-      if (isLoading || loadError || recoveryDraft) return false;
-      const saved = await handleSave();
-      return saved && !getIsDirty();
-    };
-    return () => {
-      beforeReleaseRef.current = null;
-    };
-  }, [
-    beforeReleaseRef,
-    handleSave,
-    getIsDirty,
-    isLoading,
-    loadError,
-    recoveryDraft,
-  ]);
   const qualityMode = qualityReview.view.mode === 'issues';
   const [qualityIndices, setQualityIndices] = useState<number[]>([]);
   const [loopReview, setLoopReview] = useState(false);

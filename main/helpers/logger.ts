@@ -23,7 +23,11 @@ export function logMessage(
   };
   appendLog(newLog);
 
-  BrowserWindow.getAllWindows().forEach((window) => {
-    window.webContents.send('newLog', newLog);
-  });
+  try {
+    BrowserWindow?.getAllWindows?.()?.forEach((window) => {
+      window.webContents?.send('newLog', newLog);
+    });
+  } catch {
+    // Outside electron window context
+  }
 }

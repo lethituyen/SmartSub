@@ -38,6 +38,49 @@ export const style = z
     glowColor: str.optional(),
   })
   .passthrough();
+export const blurSubtitleConfig = z
+  .object({
+    enabled: z.boolean().default(true),
+    mode: z.enum(['auto', 'manual']).default('auto').optional(),
+    yPercent: z.number().min(0).max(100).optional(),
+    heightPercent: z.number().min(0).max(100).optional(),
+    widthPercent: z.number().min(0).max(100).optional(),
+    blurStrength: z.number().min(1).max(100).optional(),
+  })
+  .strict();
+
+export const watermarkConfig = z
+  .object({
+    enabled: z.boolean().default(true),
+    imagePath: file.optional(),
+    positionPreset: z
+      .enum(['top-left', 'top-right', 'bottom-left', 'bottom-right', 'custom'])
+      .optional(),
+    xPercent: z.number().min(0).max(100).optional(),
+    yPercent: z.number().min(0).max(100).optional(),
+    scalePercent: z.number().min(1).max(100).optional(),
+    opacity: z.number().min(0).max(100).optional(),
+  })
+  .strict();
+
+export const antiDuplicateConfig = z
+  .object({
+    enabled: z.boolean().default(true),
+    preset: z.enum(['safe', 'balanced', 'aggressive', 'custom']).optional(),
+    microZoomPercent: z.number().min(0).max(10).optional(),
+    mirrorFlip: z.boolean().optional(),
+    microNoise: z.boolean().optional(),
+    microNoiseStrength: z.number().int().min(1).max(5).optional(),
+    colorShift: z.boolean().optional(),
+    vignette: z.boolean().optional(),
+    speedMultiplier: z.number().min(0.9).max(1.1).optional(),
+    pitchShift: z.boolean().optional(),
+    pitchSemitones: z.number().min(-2).max(2).optional(),
+    randomGop: z.boolean().optional(),
+    clearMetadata: z.boolean().optional(),
+  })
+  .strict();
+
 export const composeConfig = z
   .object({
     outputMode: z.enum(['hardcode', 'softmux']).default('hardcode'),
@@ -51,6 +94,9 @@ export const composeConfig = z
         duckRatio: z.number().positive().optional(),
       })
       .optional(),
+    blurOldSubtitles: blurSubtitleConfig.optional(),
+    watermark: watermarkConfig.optional(),
+    antiDuplicate: antiDuplicateConfig.optional(),
   })
   .strict();
 export const dubEngine = z.discriminatedUnion('kind', [
@@ -92,6 +138,7 @@ export const pipelineConfig = z
         styleName: str.optional(),
         videoQuality: composeConfig.shape.videoQuality,
         encoderMode: composeConfig.shape.encoderMode,
+        antiDuplicate: antiDuplicateConfig.optional(),
       })
       .optional(),
     gates: z
@@ -203,6 +250,26 @@ export const mediaConfigs = {
       fps: z.number().positive().optional(),
       width: z.number().int().positive().optional(),
       outputPath: file.optional(),
+    })
+    .strict(),
+  remake: z
+    .object({
+      preset: z
+        .enum(['safe', 'balanced', 'aggressive', 'custom'])
+        .default('balanced'),
+      microZoomPercent: z.number().min(0).max(10).optional(),
+      mirrorFlip: z.boolean().optional(),
+      microNoise: z.boolean().optional(),
+      microNoiseStrength: z.number().int().min(1).max(5).optional(),
+      colorShift: z.boolean().optional(),
+      vignette: z.boolean().optional(),
+      speedMultiplier: z.number().min(0.9).max(1.1).optional(),
+      pitchShift: z.boolean().optional(),
+      pitchSemitones: z.number().min(-2).max(2).optional(),
+      randomGop: z.boolean().optional(),
+      clearMetadata: z.boolean().optional(),
+      outputPath: file.optional(),
+      outputDir: file.optional(),
     })
     .strict(),
 };

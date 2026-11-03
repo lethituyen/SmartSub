@@ -238,14 +238,16 @@ function NavItem({
       aria-current={active ? 'page' : undefined}
       onClick={onClick}
       className={cn(
-        'titlebar-no-drag relative flex h-12 w-[52px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg transition-colors [@media(max-height:760px)]:h-10',
+        'titlebar-no-drag relative flex h-12 w-[58px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-0.5 transition-colors [@media(max-height:760px)]:h-10',
         active
-          ? 'bg-primary/10 text-primary before:absolute before:inset-y-3 before:-left-1.5 before:w-[3px] before:rounded-r-full before:bg-primary'
+          ? 'bg-primary/10 text-primary before:absolute before:inset-y-3 before:-left-1 before:w-[3px] before:rounded-r-full before:bg-primary'
           : 'text-muted-foreground hover:bg-accent hover:text-foreground',
       )}
     >
       <Icon className="h-[19px] w-[19px] flex-shrink-0" strokeWidth={1.8} />
-      <span className="text-[11px] font-medium leading-none">{label}</span>
+      <span className="text-[10px] font-medium leading-none tracking-tight text-center whitespace-nowrap">
+        {label}
+      </span>
     </Link>
   );
 }
@@ -828,12 +830,12 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="grid h-screen w-full pl-16">
-      {/* 左侧竖排导航 rail：固定 64px，任务组 / 配置组以分隔线区分，设置沉底。
+    <div className="grid h-screen w-full pl-[68px]">
+      {/* 左侧竖排导航 rail：固定 68px，任务组 / 配置组以分隔线区分，设置沉底。
           底部预留 26px 给全宽状态栏。 */}
       <aside
         className={cn(
-          'titlebar-drag fixed left-0 top-0 bottom-[26px] z-20 flex w-16 flex-col items-center gap-0.5 overflow-x-hidden overflow-y-auto border-r border-border bg-chrome px-1.5 pb-2',
+          'titlebar-drag fixed left-0 top-0 bottom-[26px] z-20 flex w-[68px] flex-col items-center gap-0.5 overflow-x-hidden overflow-y-auto border-r border-border bg-chrome px-1 pb-2',
           !isMac && 'pt-2.5',
         )}
       >

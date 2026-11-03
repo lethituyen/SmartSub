@@ -69,7 +69,6 @@ import HelpHint from '@/components/HelpHint';
 import IconChip from '@/components/IconChip';
 import CustomLanguageManager from '@/components/settings/CustomLanguageManager';
 import McpConnectionCard from '@/components/settings/McpConnectionCard';
-import TaskStorageSettings from '@/components/settings/TaskStorageSettings';
 import { openUrl } from 'lib/utils';
 import packageInfo from '../../../package.json';
 import {
@@ -880,6 +879,7 @@ const Settings = () => {
                   <SelectValue placeholder={t('selectLanguage')} />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="vi">{t('vietnamese')}</SelectItem>
                   <SelectItem value="zh">{t('chinese')}</SelectItem>
                   <SelectItem value="en">{t('english')}</SelectItem>
                 </SelectContent>
@@ -1075,7 +1075,6 @@ const Settings = () => {
                 )}
               </div>
             </div>
-            <TaskStorageSettings storageRoot={storageRoot} />
           </CardContent>
         </Card>
 

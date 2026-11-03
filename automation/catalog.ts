@@ -416,6 +416,12 @@ const mediaOperations = [
     'videoToGif',
     'cancelVideoToGif',
   ],
+  [
+    'remake',
+    'De-duplicate and remake video with micro-noise, GOP scrambling, pitch/speed mutation and metadata stripping. Use the remake config fields.',
+    'remakeVideo',
+    'cancelRemakeVideo',
+  ],
 ] as const;
 for (const [name, description, channel, cancel] of mediaOperations)
   mapped(
@@ -437,6 +443,35 @@ mapped(
     requestId,
   },
   { long: true, cancelChannel: 'toolbox:cancelEmbeddedSubtitles' },
+);
+read(
+  'media.ocr-readiness',
+  'Check whether PP-OCRv6 hardsub OCR models (detection, recognition, dictionary) are installed and ready.',
+  {},
+  'toolbox:videoOcrSubtitles:checkModels',
+);
+mapped(
+  'media.ocr-subtitles',
+  'Extract hardsub subtitles from video frames into an SRT file using PP-OCRv6 ONNX. Detects burned-in subtitles in clips, movies, TikTok, Douyin. Configurable roi (ymin, ymax, xmin, xmax), sampleFps, minScore, simThreshold, forceCpu.',
+  'toolbox:videoOcrSubtitles:start',
+  {
+    videoPath: file,
+    roi: z
+      .object({
+        ymin: z.number().min(0).max(1).default(0.78),
+        ymax: z.number().min(0).max(1).default(0.98),
+        xmin: z.number().min(0).max(1).default(0.05),
+        xmax: z.number().min(0).max(1).default(0.95),
+      })
+      .optional(),
+    sampleFps: z.number().min(0.5).max(10).default(2.5),
+    minScore: z.number().min(0.1).max(1).default(0.55),
+    simThreshold: z.number().min(0.1).max(1).default(0.68),
+    forceCpu: z.boolean().default(false),
+    outputPath: file.optional(),
+    requestId,
+  },
+  { long: true, cancelChannel: 'toolbox:videoOcrSubtitles:cancel' },
 );
 mapped(
   'compose.run',

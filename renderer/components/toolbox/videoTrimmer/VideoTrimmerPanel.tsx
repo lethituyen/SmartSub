@@ -83,6 +83,7 @@ export default function VideoTrimmerPanel() {
     endSec: outPoint,
     setStartSec: setInPoint,
     setEndSec: setOutPoint,
+    setBothSec,
   } = selection;
   const exportProgress =
     items.find((item) => item.status === 'running')?.progress || 0;
@@ -149,7 +150,7 @@ export default function VideoTrimmerPanel() {
       Math.min(outPoint - 0.1, Number(currentTime.toFixed(2))),
     );
     setInPoint(safe);
-    toast.info(`入点已设定为 ${formatSeconds(safe)}`);
+    toast.info(t('videoTrimmer.inPointSet', { time: formatSeconds(safe) }));
   };
 
   const setCurrentAsOut = () => {
@@ -158,7 +159,7 @@ export default function VideoTrimmerPanel() {
       Math.min(totalDuration, Number(currentTime.toFixed(2))),
     );
     setOutPoint(safe);
-    toast.info(`出点已设定为 ${formatSeconds(safe)}`);
+    toast.info(t('videoTrimmer.outPointSet', { time: formatSeconds(safe) }));
   };
 
   // 提交输入框内容
@@ -342,10 +343,10 @@ export default function VideoTrimmerPanel() {
                 <Film className="h-7 w-7" />
               </div>
               <h3 className="mt-3 text-sm font-semibold text-foreground">
-                点击或拖拽视频文件到此处
+                {t('videoTrimmer.dropVideo')}
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                支持 MP4, MKV, MOV, WebM, AVI, TS 等常见视频格式
+                {t('videoTrimmer.supportedFormats')}
               </p>
             </div>
           ) : (
@@ -398,8 +399,7 @@ export default function VideoTrimmerPanel() {
                     setCurrentTime(target);
                   }}
                   onChangeRange={(newIn, newOut) => {
-                    setInPoint(newIn);
-                    setOutPoint(newOut);
+                    setBothSec(newIn, newOut);
                   }}
                   disabled={isExporting}
                 />
@@ -428,8 +428,7 @@ export default function VideoTrimmerPanel() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setInPoint(0);
-                        setOutPoint(totalDuration);
+                        setBothSec(0, totalDuration);
                         playerRef.current?.seekTo(0, 'seconds');
                         setCurrentTime(0);
                       }}
@@ -471,7 +470,7 @@ export default function VideoTrimmerPanel() {
                         size="sm"
                         onClick={setCurrentAsIn}
                         className="h-6 text-[11px] px-2 font-mono gap-1"
-                        title="将当前播放位置设为入点 (快捷键 [ )"
+                        title={t('videoTrimmer.setAsInTip')}
                       >
                         <span>[ {t('videoTrimmer.setAsIn')}</span>
                         <kbd className="rounded bg-muted px-1 text-[9px] text-muted-foreground border border-border/50">
@@ -496,7 +495,7 @@ export default function VideoTrimmerPanel() {
                           if (e.key === 'Enter') commitInInput();
                         }}
                         className="h-7 text-xs font-mono w-24 text-center px-1"
-                        title="可直接输入秒数或分秒格式 (如 12.5 或 01:23.4)"
+                        title={t('videoTrimmer.timeInputTip')}
                       />
                       <div className="flex items-center gap-1 flex-1 justify-end">
                         <Button
@@ -504,7 +503,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepInPoint(-1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="后退 1 秒"
+                          title={t('videoTrimmer.stepBack1s')}
                         >
                           -1s
                         </Button>
@@ -513,7 +512,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepInPoint(-0.1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="后退 0.1 秒"
+                          title={t('videoTrimmer.stepBack01s')}
                         >
                           -0.1s
                         </Button>
@@ -522,7 +521,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepInPoint(0.1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="前进 0.1 秒"
+                          title={t('videoTrimmer.stepForward01s')}
                         >
                           +0.1s
                         </Button>
@@ -531,7 +530,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepInPoint(1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="前进 1 秒"
+                          title={t('videoTrimmer.stepForward1s')}
                         >
                           +1s
                         </Button>
@@ -551,7 +550,7 @@ export default function VideoTrimmerPanel() {
                         size="sm"
                         onClick={setCurrentAsOut}
                         className="h-6 text-[11px] px-2 font-mono gap-1"
-                        title="将当前播放位置设为出点 (快捷键 ] )"
+                        title={t('videoTrimmer.setAsOutTip')}
                       >
                         <span>] {t('videoTrimmer.setAsOut')}</span>
                         <kbd className="rounded bg-muted px-1 text-[9px] text-muted-foreground border border-border/50">
@@ -576,7 +575,7 @@ export default function VideoTrimmerPanel() {
                           if (e.key === 'Enter') commitOutInput();
                         }}
                         className="h-7 text-xs font-mono w-24 text-center px-1"
-                        title="可直接输入秒数或分秒格式 (如 35.8 或 01:45.0)"
+                        title={t('videoTrimmer.timeInputTip')}
                       />
                       <div className="flex items-center gap-1 flex-1 justify-end">
                         <Button
@@ -584,7 +583,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepOutPoint(-1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="后退 1 秒"
+                          title={t('videoTrimmer.stepBack1s')}
                         >
                           -1s
                         </Button>
@@ -593,7 +592,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepOutPoint(-0.1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="后退 0.1 秒"
+                          title={t('videoTrimmer.stepBack01s')}
                         >
                           -0.1s
                         </Button>
@@ -602,7 +601,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepOutPoint(0.1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="前进 0.1 秒"
+                          title={t('videoTrimmer.stepForward01s')}
                         >
                           +0.1s
                         </Button>
@@ -611,7 +610,7 @@ export default function VideoTrimmerPanel() {
                           size="sm"
                           onClick={() => stepOutPoint(1)}
                           className="h-7 px-1.5 text-[11px] font-mono"
-                          title="前进 1 秒"
+                          title={t('videoTrimmer.stepForward1s')}
                         >
                           +1s
                         </Button>
@@ -633,7 +632,7 @@ export default function VideoTrimmerPanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Scissors className="h-4 w-4 text-primary" />
-              裁剪设置
+              {t('videoTrimmer.settingsTitle')}
             </h3>
 
             {/* 模式选择 */}
@@ -691,7 +690,7 @@ export default function VideoTrimmerPanel() {
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-muted-foreground">
-                  起止秒数 (精准秒数)
+                  {t('videoTrimmer.startEndSeconds')}
                 </Label>
                 <span className="text-[10px] text-muted-foreground font-mono">
                   {formatSeconds(clipDuration)}
@@ -700,7 +699,7 @@ export default function VideoTrimmerPanel() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <span className="text-[10px] text-muted-foreground">
-                    起始秒
+                    {t('videoTrimmer.startSecond')}
                   </span>
                   <Input
                     type="number"
@@ -724,7 +723,7 @@ export default function VideoTrimmerPanel() {
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] text-muted-foreground">
-                    结束秒
+                    {t('videoTrimmer.endSecond')}
                   </span>
                   <Input
                     type="number"

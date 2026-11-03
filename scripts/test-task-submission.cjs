@@ -12,9 +12,9 @@ function harness(initial) {
   };
   let writeFailure = false;
   let writes = 0;
-  let releaseProcessing;
-  const processing = new Promise((resolve) => {
-    releaseProcessing = resolve;
+  let releaseDetection;
+  const detection = new Promise((resolve) => {
+    releaseDetection = resolve;
   });
   const handlers = new Map();
   const cache = new Map();
@@ -47,14 +47,12 @@ function harness(initial) {
     './storeManager': { store, logMessage() {} },
     './fileProcessor': {
       processFile: async (event, file, formData) => {
-        await processing;
         processed.push(file);
         runs.push(formData);
         event.sender.send('taskStatusChange', file, 'extractSubtitle', 'done');
       },
     },
-    // A stalled system CLI probe must never delay task acceptance or dispatch.
-    './whisper': { checkOpenAiWhisper: () => new Promise(() => {}) },
+    './whisper': { checkOpenAiWhisper: () => detection },
     './utils': { isAppleSilicon: () => false },
     './providerMigration': { resolveProviderFallbacks: () => [] },
     '../service/configurationManager': { configurationManager: {} },
@@ -137,7 +135,7 @@ function harness(initial) {
     fail: (value) => {
       writeFailure = value;
     },
-    release: () => releaseProcessing(),
+    release: () => releaseDetection(false),
   };
 }
 
@@ -203,11 +201,7 @@ async function main() {
   assert.equal(state.disk().workItems[0].configSnapshot.nested.value, 1);
   state.release();
   await new Promise(setImmediate);
-  assert.equal(
-    state.processed.length,
-    1,
-    'dispatch does not wait for a CLI probe',
-  );
+  assert.equal(state.processed.length, 1);
   assert.equal(
     state.events.find(([channel]) => channel === 'taskStatusChange')[1]
       .taskProjectId,

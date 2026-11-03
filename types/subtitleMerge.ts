@@ -217,6 +217,87 @@ export type ComposeSubtitleMode = 'none' | 'soft' | 'hard';
  */
 export type ComposeAudioMode = 'keep' | 'replace' | 'mix' | 'addTrack';
 
+/**
+ * 抹除/模糊原视频硬字幕配置
+ */
+export interface BlurSubtitleConfig {
+  /** 是否启用模糊/抹除旧字幕 */
+  enabled: boolean;
+  /** 模式：auto 根据视频宽高比自适应，manual 指定百分比 */
+  mode?: 'auto' | 'manual';
+  /** Y 轴起始位置百分比 (0-100)，缺省根据横竖屏自适应 (竖屏 ~68.5%，横屏 ~84%) */
+  yPercent?: number;
+  /** 模糊区域高度百分比 (0-100)，缺省自适应 (竖屏 ~12.5%，横屏 ~11%) */
+  heightPercent?: number;
+  /** 模糊区域宽度百分比 (0-100)，缺省自适应 (竖屏 ~86%，横屏 ~80%) */
+  widthPercent?: number;
+  /** 模糊强度 (boxblur luma radius, 缺省 22) */
+  blurStrength?: number;
+}
+
+/**
+ * 视频水印/Logo 配置
+ */
+export interface WatermarkConfig {
+  /** 是否启用视频水印/Logo */
+  enabled: boolean;
+  /** 水印图片文件绝对路径 (支持 png, jpg, webp, svg 等) */
+  imagePath?: string;
+  /** 预设位置 */
+  positionPreset?:
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'custom';
+  /** 水印 X 轴起始百分比 (0-100) */
+  xPercent?: number;
+  /** 水印 Y 轴起始百分比 (0-100) */
+  yPercent?: number;
+  /** 水印缩放大小百分比，相对视频宽度 (5-50, 缺省 15) */
+  scalePercent?: number;
+  /** 不透明度百分比 (10-100, 缺省 90) */
+  opacity?: number;
+  /** 是否对 logo 所在区域做背景模糊/遮罩以遮盖原视频 logo */
+  blurBackground?: boolean;
+  /** 图片宽高比（width / height，由探针或前端解析） */
+  aspectRatio?: number;
+}
+
+/**
+ * 视频去重 / 防查重 (Anti-Duplicate / Video Remaker) 深度重塑配置
+ */
+export type AntiDuplicatePreset = 'safe' | 'balanced' | 'aggressive' | 'custom';
+
+export interface AntiDuplicateConfig {
+  /** 是否启用视频去重/防查重算法 */
+  enabled: boolean;
+  /** 预设档位 */
+  preset?: AntiDuplicatePreset;
+  /** 微缩放与裁剪百分比 (0-8, 缺省 3) */
+  microZoomPercent?: number;
+  /** 水平镜像翻转 */
+  mirrorFlip?: boolean;
+  /** 动态微噪点 (破坏 pHash 指纹) */
+  microNoise?: boolean;
+  /** 噪点强度 (1-5, 缺省 2) */
+  microNoiseStrength?: number;
+  /** 微调色彩/对比度/直方图 */
+  colorShift?: boolean;
+  /** 柔和电影暗角 */
+  vignette?: boolean;
+  /** 时间轴微调速 (0.95 - 1.05, 缺省 1.03) */
+  speedMultiplier?: number;
+  /** 音频音高微调 (避开 Audio Content ID) */
+  pitchShift?: boolean;
+  /** 音高偏移半音 (-2 到 +2, 缺省 +0.3) */
+  pitchSemitones?: number;
+  /** 扰乱 GOP 关键帧周期 */
+  randomGop?: boolean;
+  /** 抹除视频 EXIF 与元数据 */
+  clearMetadata?: boolean;
+}
+
 export type ComposeSubtitleSpec =
   | { mode: 'none' }
   | { mode: 'soft'; subtitlePath: string }
@@ -226,6 +307,9 @@ export type ComposeSubtitleSpec =
       style: SubtitleStyle;
       videoQuality?: VideoQuality;
       encoderMode?: EncoderMode;
+      blurOldSubtitles?: BlurSubtitleConfig;
+      watermark?: WatermarkConfig;
+      antiDuplicate?: AntiDuplicateConfig;
     };
 
 export type ComposeAudioSpec =
@@ -289,6 +373,8 @@ export interface ComposeJobView {
     mode: 'replace' | 'mix' | 'addTrack';
     trackPath: string;
   };
+  blurOldSubtitles?: BlurSubtitleConfig;
+  watermark?: WatermarkConfig;
 }
 
 /**
@@ -324,6 +410,12 @@ export interface MergeConfig {
     /** mix 模式原声压低强度（缺省 8） */
     duckRatio?: number;
   };
+  /** 抹除/模糊原视频硬字幕配置 */
+  blurOldSubtitles?: BlurSubtitleConfig;
+  /** 视频水印/Logo 配置 */
+  watermark?: WatermarkConfig;
+  /** 视频去重 / 防查重深度重塑配置 */
+  antiDuplicate?: AntiDuplicateConfig;
 }
 
 /**

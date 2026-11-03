@@ -127,7 +127,7 @@ export default function SubtitleCanvas({
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-10"
+      className="pointer-events-none absolute inset-0 z-[30]"
       data-subtitle-canvas
     >
       {safeArea === 'broadcast' && (

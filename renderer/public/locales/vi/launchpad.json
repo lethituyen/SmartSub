@@ -1,0 +1,223 @@
+{
+  "title": "Bạn muốn làm gì hôm nay?",
+  "subtitle": "Chọn quy trình xử lý, hoặc kéo thả trực tiếp tư liệu vào đây",
+  "startPanel": {
+    "title": "Bắt đầu sáng tạo"
+  },
+  "globalDrop": {
+    "entryTitle": "Kéo thả vào Bàn làm việc để bắt đầu",
+    "entryDesc": "Video, âm thanh, phụ đề, kịch bản văn bản · Toàn bộ khu vực Bàn làm việc đều tiếp nhận",
+    "selectFiles": "Chọn tệp",
+    "title": "Thả tay để nhập tư liệu",
+    "desc": "Tư liệu sẽ được lưu tạm thành bản nháp, tiếp theo hãy chọn quy trình xử lý",
+    "recipeTitle": "Thả tay để nhập vào「{{name}}」",
+    "recipeDesc": "Tư liệu sẽ sử dụng quy trình này, nếu thiếu cấu hình hãy hoàn tất cài đặt trước",
+    "importing": "Đang nhập tư liệu…",
+    "unsupported": "Không tìm thấy tệp video, âm thanh, phụ đề hoặc văn bản được hỗ trợ",
+    "subtitleRequired": "Quy trình này chỉ tiếp nhận tệp phụ đề. Tệp âm thanh/video vui lòng kéo vào vùng trống hoặc thẻ chép lời.",
+    "failed": "Nhập tư liệu thất bại, vui lòng thử lại",
+    "existingTitle": "Đang có bản nháp tác vụ chưa hoàn thành",
+    "existingDescription": "Thêm tư liệu sẽ giữ lại mục tiêu, mẫu quy trình và toàn bộ cài đặt của bản nháp cũ. Tạo tác vụ mới sẽ thay thế bản nháp cũ.",
+    "unreadableDescription": "Không thể đọc bản nháp cũ, dữ liệu gốc đã được giữ lại. Bạn có thể thử lại, hoặc chọn thay thế để hủy bản nháp cũ và tạo mới.",
+    "replaceDraft": "Thay thế bản nháp & Tạo mới",
+    "appendDraft": "Thêm vào bản nháp hiện có",
+    "storageFailed": "Không thể lưu bản nháp vào ổ đĩa, tạm thời chưa bắt đầu cài đặt hay chuyển hướng. Vui lòng thử lại.",
+    "retrySave": "Thử lưu lại"
+  },
+  "quickDownload": {
+    "title": "Cần cài đặt mô hình nhận diện giọng nói",
+    "desc": "Đã lưu {{count}} tệp và cài đặt tác vụ. Cần cài đặt mô hình Whisper Base (~140MB, khoảng 15 giây với mạng nhanh).",
+    "downloading": "Đang tải mô hình ({{progress}}%)…",
+    "startDownload": "Cài đặt & Tiếp tục",
+    "installComplete": "Cài đặt mô hình thành công, đang chuyển tới tác vụ sáng tạo…",
+    "cancel": "Tạm thời chưa tải",
+    "source": "Nguồn tải",
+    "mirror": "Máy chủ tăng tốc",
+    "busy": "Đang có mô hình khác được tải xuống, vui lòng thử lại sau.",
+    "failed": "Cài đặt thất bại, vui lòng kiểm tra kết nối mạng rồi thử lại hoặc đổi nguồn tải. Bản nháp vẫn được giữ nguyên.",
+    "notInstalled": "Chưa phát hiện mô hình Base được cài đặt thành công, vui lòng thử lại. Bản nháp vẫn được giữ nguyên."
+  },
+  "recipes": {
+    "custom": "Quy trình tùy chỉnh",
+    "customDesc": "Mở hướng dẫn, tự do kết hợp mục tiêu và cấu hình, có thể lưu thành mẫu quy trình",
+    "rename": "Đổi tên",
+    "delete": "Xóa",
+    "deleteTitle": "Xóa mẫu quy trình này?",
+    "deleteDesc": "Thao tác này sẽ xóa mẫu「{{name}}」, các tác vụ đã tạo sẽ không bị ảnh hưởng.",
+    "cancel": "Hủy bỏ",
+    "confirmDelete": "Xác nhận xóa"
+  },
+  "quickLinks": {
+    "title": "Lối tắt nhanh",
+    "mcpHint": "Kết nối Cursor / Codex để mở rộng khả năng AI bên ngoài",
+    "downloadHint": "Dán liên kết để tải hàng loạt video trực tuyến",
+    "proofreadHint": "Kiểm tra sửa từng câu, AI trau chuốt",
+    "mergeHint": "Ghép cứng phụ đề vào khung hình video",
+    "dubbingHint": "Tổng hợp giọng đọc cho từng câu phụ đề"
+  },
+  "aiGuide": {
+    "title": "Trợ lý AI",
+    "desc": "Đã kết nối toàn bộ ngữ cảnh, sẵn sàng hỗ trợ sáng tạo và xử lý lỗi trên mọi giao diện.",
+    "painPoints": {
+      "modelSelection": "Chưa biết nên tải mô hình nào?",
+      "paramTuning": "Chưa rõ cách thiết lập tham số?",
+      "troubleshooting": "Tác vụ báo lỗi không biết cách xử lý?",
+      "omnipresent": "Hỗ trợ sáng tạo bất kỳ lúc nào"
+    },
+    "notConfigured": {
+      "title": "Chưa cấu hình dịch vụ AI",
+      "action": "Đến cấu hình dịch vụ AI"
+    },
+    "configured": {
+      "title": "Dịch vụ AI đã sẵn sàng"
+    },
+    "openAssistant": "Mở Trợ lý AI",
+    "closeAssistant": "Thu gọn Trợ lý AI",
+    "manageProviders": "Quản lý dịch vụ"
+  },
+  "hero": {
+    "morning": "Chào buổi sáng",
+    "noon": "Chào buổi trưa",
+    "afternoon": "Chào buổi chiều",
+    "evening": "Chào buổi tối",
+    "statTasks": "{{count}} tác vụ",
+    "statRunning": "{{count}} đang xử lý",
+    "statDone": "{{count}} đã hoàn thành"
+  },
+  "quickStart": {
+    "title": "Bắt đầu nhanh",
+    "intro": "Lần đầu sử dụng? Hãy thử tạo một bản phụ đề gốc từ video.",
+    "import": {
+      "title": "Nhập một đoạn âm thanh / video",
+      "description": "Nhấn nút bên dưới để nhập một đoạn clip ngắn có giọng nói rõ ràng."
+    },
+    "configure": {
+      "title": "Xác nhận ngôn ngữ và mô hình",
+      "description": "Chọn ngôn ngữ của âm thanh và mô hình nhận diện, các cài đặt khác tạm thời giữ mặc định.",
+      "models": "Chưa có mô hình? Đi đến cài đặt"
+    },
+    "result": {
+      "title": "Bắt đầu xử lý & Xem phụ đề",
+      "description": "Nhấn bắt đầu; khi xong nhấn「Mở thư mục」để lấy phụ đề, hoặc「Đến hiệu đính」để sửa chữ."
+    },
+    "start": "Bắt đầu tạo phụ đề"
+  },
+  "env": {
+    "title": "Trạng thái môi trường",
+    "canWork": "Có thể bắt đầu",
+    "model": "Mô hình nhận diện",
+    "gpu": "Tăng tốc GPU",
+    "translation": "Dịch thuật",
+    "voice": "Lồng tiếng",
+    "ready": "Đã sẵn sàng",
+    "notInstalled": "Chưa cài đặt",
+    "notConfigured": "Chưa cấu hình",
+    "notDetected": "Chờ kiểm tra",
+    "gpuOn": "{{backend}} đã bật",
+    "cpuMode": "Chế độ CPU",
+    "configuredCount": "Đã cấu hình {{count}} dịch vụ",
+    "manage": "Quản lý",
+    "detail": "Chi tiết",
+    "goConfigure": "Đến cấu hình"
+  },
+  "pipeline": {
+    "transcribe": "Chép lời",
+    "translate": "Dịch thuật",
+    "proofread": "Hiệu đính",
+    "compose": "Ghép video",
+    "dubbing": "Lồng tiếng"
+  },
+  "card": {
+    "pipeline": "Video → Video lồng tiếng hoàn chỉnh",
+    "pipelineDesc": "Trọn gói chép lời, dịch thuật, lồng tiếng, ghép video; mặc định dừng ở bước hiệu đính để kiểm soát (có thể chọn chạy tự động)",
+    "generateTranslate": "Video → Phụ đề song ngữ",
+    "generateTranslateDesc": "Chép lời giọng nói và dịch sang ngôn ngữ mục tiêu chỉ trong 1 bước",
+    "generate": "Video → Phụ đề gốc",
+    "generateDesc": "Chỉ chép lời giọng nói thành chữ, không dịch",
+    "translate": "Dịch tệp phụ đề đã có",
+    "translateDesc": "Dịch tệp phụ đề SRT/VTT/ASS sang ngôn ngữ khác",
+    "mcp": "Kết nối MCP",
+    "download": "Tải video trực tuyến",
+    "proofread": "Hiệu đính phụ đề",
+    "proofreadDesc": "Kiểm tra sửa từng câu, hỗ trợ đối chiếu video và AI trau chuốt",
+    "merge": "Ghép phụ đề vào video",
+    "mergeDesc": "Ghi phụ đề trực tiếp vào khung hình video (Hardsub)",
+    "dubbing": "Lồng tiếng AI",
+    "dubbingDesc": "Tổng hợp giọng đọc cho từng câu phụ đề, khớp dòng thời gian",
+    "compose": "Ghép video",
+    "toolbox": "Hộp công cụ"
+  },
+  "fromDownload": "Từ lượt tải về",
+  "needsModelBadge": "Cần mô hình",
+  "qualityGateBadge": "Kiểm soát chất lượng · Dừng ở bước hiệu đính",
+  "banner": {
+    "noModel": "Chưa có mô hình nhận diện giọng nói — tải ngay một mô hình để bắt đầu",
+    "noModelCta": "Tải mô hình khuyến nghị",
+    "noProvider": "Muốn dịch phụ đề? Cấu hình dịch vụ dịch thuật trước (có tùy chọn miễn phí)",
+    "noProviderCta": "Đến cấu hình",
+    "noTtsCta": "Cấu hình công cụ lồng tiếng"
+  },
+  "recentTasks": "Tác vụ gần đây",
+  "noRecentTasks": "Chưa có tác vụ nào, hãy chọn một tác vụ ở trên để bắt đầu",
+  "dropHint": "Thả tay để nhập tệp",
+  "fileCount": "{{count}} tệp",
+  "recent": {
+    "footerHint": "Kéo thả vào Bàn làm việc để nhập tư liệu, thả vào thẻ tác vụ để dùng quy trình chỉ định",
+    "rename": "Đổi tên",
+    "delete": "Xóa",
+    "deleteTitle": "Xóa bản ghi tác vụ này?",
+    "deleteDesc": "Sẽ xóa bản ghi tác vụ「{{name}}」cùng âm thanh lồng tiếng nội bộ, lịch sử sửa đổi và bản nháp khôi phục. Tệp gốc và tệp đã xuất vẫn được giữ lại.",
+    "deleteFailed": "Xóa chưa hoàn tất. Vui lòng đóng cửa sổ lồng tiếng của dự án này, dừng tác vụ rồi thử lại.",
+    "errorDetails": "Chi tiết lỗi",
+    "cancel": "Hủy bỏ",
+    "viewAll": "Xem tất cả ({{count}})",
+    "viewAllPage": "Xem tất cả ({{count}})",
+    "collapse": "Thu gọn",
+    "searchPlaceholder": "Tìm kiếm tên tác vụ…",
+    "noMatch": "Không có tác vụ phù hợp"
+  },
+  "allTasks": {
+    "title": "Toàn bộ tác vụ",
+    "description": "Xem, lọc và quản lý tất cả các bản ghi tác vụ gần đây",
+    "back": "Quay lại Bàn làm việc",
+    "searchPlaceholder": "Tìm kiếm theo tên tác vụ…",
+    "typeFilter": "Loại tác vụ",
+    "typeAll": "Tất cả các loại",
+    "pageRange": "Từ {{from}}–{{to}} / Tổng {{total}}",
+    "pageInfo": "Trang {{page}} / {{totalPages}}",
+    "prevPage": "Trang trước",
+    "nextPage": "Trang sau",
+    "resultCount": "Hiển thị {{shown}} / Tổng {{total}} tác vụ",
+    "noMatch": "Không có tác vụ nào phù hợp với điều kiện lọc",
+    "loading": "Đang tải…",
+    "clearAll": "Xóa toàn bộ",
+    "clearAllTitle": "Xóa toàn bộ bản ghi tác vụ?",
+    "clearAllDesc": "Sẽ xóa {{count}} bản ghi tác vụ cùng âm thanh lồng tiếng và bản nháp. Tệp gốc và tệp đã xuất vẫn được giữ nguyên.",
+    "clearAllConfirm": "Xác nhận xóa sạch",
+    "emptyTitle": "Chưa có bản ghi tác vụ nào",
+    "emptyHint": "Quay lại Bàn làm việc chọn một tác vụ để bắt đầu, khi xử lý xong sẽ hiển thị tại đây",
+    "emptyCta": "Quay lại Bàn làm việc"
+  },
+  "status": {
+    "waiting": "Đang chờ",
+    "running": "Đang chạy",
+    "done": "Đã xong",
+    "error": "Lỗi",
+    "review": "Chờ hiệu đính"
+  },
+  "noRecentTasksHint": "Các tác vụ hoàn thành sẽ hiển thị tại đây, kéo thả tệp vào Bàn làm việc để bắt đầu",
+  "result": {
+    "back": "Quay lại toàn bộ tác vụ",
+    "loading": "Đang đọc bản ghi xử lý…",
+    "unavailable": "Bản ghi xử lý không tồn tại hoặc đã bị xóa",
+    "retry": "Đọc lại",
+    "outputs": "Tệp đầu ra",
+    "inputs": "Tư liệu đầu vào",
+    "noOutputs": "Chưa có tệp đầu ra hoàn chỉnh",
+    "openFolder": "Mở thư mục chứa tệp",
+    "fileMissing": "Tệp đã bị di chuyển hoặc xóa: {{path}}",
+    "openFailed": "Không thể mở vị trí tệp",
+    "openCompose": "Dùng tư liệu gốc mở bàn làm việc ghép video",
+    "openTool": "Mở công cụ tương ứng"
+  }
+}

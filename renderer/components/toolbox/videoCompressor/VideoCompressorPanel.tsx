@@ -99,10 +99,10 @@ export default function VideoCompressorPanel() {
               <UploadCloud className="h-5 w-5" />
             </div>
             <p className="mt-2 text-xs font-medium text-foreground">
-              点击或拖拽视频文件到此处（支持多选批量压缩）
+              {t('videoCompressor.dropVideo')}
             </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              基于 H.264 与智能码率自适应，快速减少体积便于社交平台分享
+              {t('videoCompressor.dropVideoDesc')}
             </p>
           </div>
 
@@ -143,10 +143,10 @@ export default function VideoCompressorPanel() {
                     htmlFor="p-wechat"
                     className="text-xs font-medium cursor-pointer"
                   >
-                    微信分享预设 (&lt; 25MB)
+                    {t('videoCompressor.presetWechat')}
                   </Label>
                   <p className="text-[11px] text-muted-foreground">
-                    自动限制视频体积在 25MB 内，并自适应码率，保证微信秒发
+                    {t('videoCompressor.presetWechatDesc')}
                   </p>
                 </div>
               </div>
@@ -162,10 +162,10 @@ export default function VideoCompressorPanel() {
                     htmlFor="p-balanced"
                     className="text-xs font-medium cursor-pointer"
                   >
-                    1080p 社交均衡压缩
+                    {t('videoCompressor.presetBalanced')}
                   </Label>
                   <p className="text-[11px] text-muted-foreground">
-                    H.264 CRF 24 编码，适合小红书、抖音、B站等主流高清分享
+                    {t('videoCompressor.presetBalancedDesc')}
                   </p>
                 </div>
               </div>
@@ -181,10 +181,10 @@ export default function VideoCompressorPanel() {
                     htmlFor="p-fast"
                     className="text-xs font-medium cursor-pointer"
                   >
-                    720p 快速压缩
+                    {t('videoCompressor.presetFast')}
                   </Label>
                   <p className="text-[11px] text-muted-foreground">
-                    降分辨率至 720p 并降低码率，体积超小，传输更迅捷
+                    {t('videoCompressor.presetFastDesc')}
                   </p>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export default function VideoCompressorPanel() {
                     htmlFor="p-target"
                     className="text-xs font-medium cursor-pointer"
                   >
-                    指定目标文件体积
+                    {t('videoCompressor.presetTarget')}
                   </Label>
                   {preset === 'target_size' && (
                     <div className="flex items-center gap-2 pt-1">
@@ -228,7 +228,7 @@ export default function VideoCompressorPanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              导出设置
+              {t('exportSettings')}
             </h3>
 
             <div className="space-y-1.5">

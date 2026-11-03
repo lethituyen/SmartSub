@@ -94,10 +94,10 @@ export default function SubtitleSyncPanel() {
               <UploadCloud className="h-6 w-6" />
             </div>
             <p className="mt-2 text-xs font-medium text-foreground">
-              点击或拖拽需要校准时间轴的字幕文件到此处
+              {t('subtitleSync.dropSubtitle')}
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              支持 SRT, VTT, ASS 格式，修复整篇字幕提前、滞后或帧率漂移
+              {t('subtitleSync.supportedFormats')}
             </p>
           </div>
 
@@ -110,7 +110,7 @@ export default function SubtitleSyncPanel() {
           />
           <fieldset disabled={isProcessing} className="space-y-4">
             <Label className="text-xs font-semibold text-foreground">
-              校准模式
+              {t('subtitleSync.mode')}
             </Label>
             <Tabs
               value={mode}
@@ -119,13 +119,13 @@ export default function SubtitleSyncPanel() {
             >
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="offset" className="text-xs">
-                  整体平移
+                  {t('subtitleSync.modeOffset')}
                 </TabsTrigger>
                 <TabsTrigger value="scale" className="text-xs">
-                  帧率伸缩
+                  {t('subtitleSync.modeScale')}
                 </TabsTrigger>
                 <TabsTrigger value="two-point" className="text-xs">
-                  双锚点校正
+                  {t('subtitleSync.modeTwoPoint')}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -135,7 +135,7 @@ export default function SubtitleSyncPanel() {
               <div className="space-y-3 rounded-lg p-4 bg-muted/40">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs text-foreground">
-                    平移毫秒数 (正数延后，负数提前)
+                    {t('subtitleSync.offsetInput')}
                   </Label>
                   <span className="font-mono text-xs font-medium text-primary">
                     {offsetMs >= 0 ? `+${offsetMs}` : offsetMs} ms (
@@ -153,13 +153,13 @@ export default function SubtitleSyncPanel() {
                 />
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
                   <span className="text-[11px] text-muted-foreground mr-1">
-                    快捷微调:
+                    {t('subtitleSync.quickAdjust')}
                   </span>
                   {[
                     { label: '-1s', delta: -1000 },
                     { label: '-500ms', delta: -500 },
                     { label: '-100ms', delta: -100 },
-                    { label: '归零', reset: 0 },
+                    { label: t('subtitleSync.resetZero'), reset: 0 },
                     { label: '+100ms', delta: 100 },
                     { label: '+500ms', delta: 500 },
                     { label: '+1s', delta: 1000 },
@@ -187,7 +187,7 @@ export default function SubtitleSyncPanel() {
               <div className="space-y-3 rounded-lg p-4 bg-muted/40">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs text-foreground">
-                    时间轴伸缩比率
+                    {t('subtitleSync.scaleRatio')}
                   </Label>
                   <span className="font-mono text-xs font-medium text-primary">
                     {scaleRatio.toFixed(5)}x
@@ -204,7 +204,7 @@ export default function SubtitleSyncPanel() {
                 />
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
                   <span className="text-[11px] text-muted-foreground mr-1">
-                    常用帧率校准预设:
+                    {t('subtitleSync.fpsPresets')}
                   </span>
                   {FRAMERATE_RATIO_PRESETS.map((preset, idx) => (
                     <Button
@@ -225,12 +225,12 @@ export default function SubtitleSyncPanel() {
             {mode === 'two-point' && (
               <div className="space-y-3 rounded-lg p-4 bg-muted/40">
                 <p className="text-[11px] text-muted-foreground leading-normal">
-                  分别输入第一句和最后一句当前的时间码与正确的目标时间码，算法将通过线性重采样修正全篇渐进式偏差。
+                  {t('subtitleSync.twoPointDesc')}
                 </p>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className="space-y-1">
                     <span className="text-muted-foreground text-[11px]">
-                      首句原时间 (ms)
+                      {t('subtitleSync.p1Source')}
                     </span>
                     <Input
                       type="number"
@@ -243,7 +243,7 @@ export default function SubtitleSyncPanel() {
                   </div>
                   <div className="space-y-1">
                     <span className="text-muted-foreground text-[11px]">
-                      首句目标时间 (ms)
+                      {t('subtitleSync.p1Target')}
                     </span>
                     <Input
                       type="number"
@@ -256,7 +256,7 @@ export default function SubtitleSyncPanel() {
                   </div>
                   <div className="space-y-1">
                     <span className="text-muted-foreground text-[11px]">
-                      尾句原时间 (ms)
+                      {t('subtitleSync.p2Source')}
                     </span>
                     <Input
                       type="number"
@@ -269,7 +269,7 @@ export default function SubtitleSyncPanel() {
                   </div>
                   <div className="space-y-1">
                     <span className="text-muted-foreground text-[11px]">
-                      尾句目标时间 (ms)
+                      {t('subtitleSync.p2Target')}
                     </span>
                     <Input
                       type="number"
@@ -291,7 +291,7 @@ export default function SubtitleSyncPanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              导出设置
+              {t('exportSettings')}
             </h3>
 
             <div className="space-y-1.5">
@@ -348,10 +348,10 @@ export default function SubtitleSyncPanel() {
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  校准中...
+                  {t('subtitleSync.processing')}
                 </>
               ) : (
-                '应用校准并导出'
+                t('subtitleSync.startSync')
               )}
             </Button>
           </div>

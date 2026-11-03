@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'next-i18next';
 import { cn } from 'lib/utils';
 
 export interface TimelineTrimmerBarProps {
@@ -38,6 +39,7 @@ export default function TimelineTrimmerBar({
   disabled = false,
   className,
 }: TimelineTrimmerBarProps) {
+  const { t } = useTranslation('toolbox');
   const trackRef = useRef<HTMLDivElement>(null);
 
   // 鼠标悬停时的预览时间与横坐标
@@ -48,6 +50,15 @@ export default function TimelineTrimmerBar({
   const [activeHandle, setActiveHandle] = useState<DragHandle>(null);
 
   const totalDuration = Math.max(0.1, duration || 1);
+
+  const inPointRef = useRef(inPoint);
+  const outPointRef = useRef(outPoint);
+  const totalDurationRef = useRef(totalDuration);
+  inPointRef.current = inPoint;
+  outPointRef.current = outPoint;
+  totalDurationRef.current = totalDuration;
+
+  const isDraggingRef = useRef(false);
 
   // 时间转换为百分比 (0 ~ 100)
   const timeToPercent = useCallback(
@@ -94,22 +105,26 @@ export default function TimelineTrimmerBar({
     e.stopPropagation();
 
     setActiveHandle(handle);
+    isDraggingRef.current = true;
 
     const onWindowMouseMove = (moveEvent: MouseEvent) => {
       moveEvent.preventDefault();
       const currentT = clientXToTime(moveEvent.clientX);
+      const curIn = inPointRef.current;
+      const curOut = outPointRef.current;
+      const curDuration = totalDurationRef.current;
 
       if (handle === 'in') {
-        // 限制：0 <= newIn <= outPoint - 0.1
-        const maxIn = Math.max(0, outPoint - 0.1);
+        // 限制：0 <= newIn <= curOut - 0.1
+        const maxIn = Math.max(0, curOut - 0.1);
         const newIn = Math.max(0, Math.min(maxIn, currentT));
-        onChangeRange(newIn, outPoint);
+        onChangeRange(newIn, curOut);
         onSeek(newIn);
       } else if (handle === 'out') {
-        // 限制：inPoint + 0.1 <= newOut <= totalDuration
-        const minOut = Math.min(totalDuration, inPoint + 0.1);
-        const newOut = Math.max(minOut, Math.min(totalDuration, currentT));
-        onChangeRange(inPoint, newOut);
+        // 限制：curIn + 0.1 <= newOut <= curDuration
+        const minOut = Math.min(curDuration, curIn + 0.1);
+        const newOut = Math.max(minOut, Math.min(curDuration, currentT));
+        onChangeRange(curIn, newOut);
         onSeek(newOut);
       }
     };
@@ -118,6 +133,9 @@ export default function TimelineTrimmerBar({
       upEvent.preventDefault();
       setActiveHandle(null);
       setHoverTime(null);
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 50);
       window.removeEventListener('mousemove', onWindowMouseMove);
       window.removeEventListener('mouseup', onWindowMouseUp);
     };
@@ -128,16 +146,16 @@ export default function TimelineTrimmerBar({
 
   // 点击轨道空白处：就近吸附手柄或在选区内快速跳转播放点
   const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (disabled || activeHandle) return;
+    if (disabled || activeHandle || isDraggingRef.current) return;
     const clickT = clientXToTime(e.clientX);
 
-    if (clickT < inPoint) {
+    if (clickT < inPointRef.current) {
       // 点击在入点左侧：直接将入点拉伸至该位置
-      onChangeRange(clickT, outPoint);
+      onChangeRange(clickT, outPointRef.current);
       onSeek(clickT);
-    } else if (clickT > outPoint) {
+    } else if (clickT > outPointRef.current) {
       // 点击在出点右侧：直接将出点拉伸至该位置
-      onChangeRange(inPoint, clickT);
+      onChangeRange(inPointRef.current, clickT);
       onSeek(clickT);
     } else {
       // 点击在选区内部：仅跳转当前播放位置供预览
@@ -168,55 +186,58 @@ export default function TimelineTrimmerBar({
         onMouseLeave={handleMouseLeave}
         onClick={handleTrackClick}
         className={cn(
-          'relative h-9 w-full rounded-lg border border-border/80 bg-muted/50 overflow-hidden cursor-pointer shadow-inner',
+          'relative h-9 w-full rounded-lg border border-border/80 bg-muted/50 cursor-pointer shadow-inner',
           disabled && 'pointer-events-none opacity-50',
         )}
       >
-        {/* 背景刻度标尺微格装饰 */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[repeating-linear-gradient(90deg,transparent,transparent_19px,currentColor_20px)] text-foreground/50" />
+        {/* 背景与遮罩层（限制在圆角轨道内，避免手柄被外部剪裁） */}
+        <div className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none">
+          {/* 背景刻度标尺微格装饰 */}
+          <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(90deg,transparent,transparent_19px,currentColor_20px)] text-foreground/50" />
 
-        {/* 左侧非选区暗幕 */}
-        <div
-          className="absolute top-0 bottom-0 left-0 bg-black/55 pointer-events-none"
-          style={{ width: `${leftPercent}%` }}
-        />
+          {/* 左侧非选区暗幕 */}
+          <div
+            className="absolute top-0 bottom-0 left-0 bg-black/55"
+            style={{ width: `${leftPercent}%` }}
+          />
 
-        {/* 右侧非选区暗幕 */}
-        <div
-          className="absolute top-0 bottom-0 right-0 bg-black/55 pointer-events-none"
-          style={{ width: `${Math.max(0, 100 - rightPercent)}%` }}
-        />
+          {/* 右侧非选区暗幕 */}
+          <div
+            className="absolute top-0 bottom-0 right-0 bg-black/55"
+            style={{ width: `${Math.max(0, 100 - rightPercent)}%` }}
+          />
 
-        {/* 中间高亮选区 */}
-        <div
-          className="absolute top-0 bottom-0 bg-primary/20 border-y-2 border-primary/60 pointer-events-none flex items-center justify-center overflow-hidden"
-          style={{
-            left: `${leftPercent}%`,
-            width: `${Math.max(0, rightPercent - leftPercent)}%`,
-          }}
-        >
-          <span className="text-[11px] font-mono font-medium text-primary/70 select-none">
-            {formatTime(outPoint - inPoint)}
-          </span>
-        </div>
+          {/* 中间高亮选区 */}
+          <div
+            className="absolute top-0 bottom-0 bg-primary/20 border-y-2 border-primary/60 flex items-center justify-center overflow-hidden"
+            style={{
+              left: `${leftPercent}%`,
+              width: `${Math.max(0, rightPercent - leftPercent)}%`,
+            }}
+          >
+            <span className="text-[11px] font-mono font-medium text-primary/70 select-none">
+              {formatTime(outPoint - inPoint)}
+            </span>
+          </div>
 
-        {/* 只读播放头指示线（不接受拖拽事件，完全杜绝与手柄冲突） */}
-        <div
-          className="absolute top-0 bottom-0 w-0.5 -ml-[1px] bg-red-500 pointer-events-none z-10 shadow-[0_0_6px_rgba(239,68,68,0.8)]"
-          style={{ left: `${playheadPercent}%` }}
-        >
-          <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-500 rotate-45 shadow-sm" />
+          {/* 只读播放头指示线 */}
+          <div
+            className="absolute top-0 bottom-0 w-0.5 -ml-[1px] bg-red-500 z-10 shadow-[0_0_6px_rgba(239,68,68,0.8)]"
+            style={{ left: `${playheadPercent}%` }}
+          >
+            <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-500 rotate-45 shadow-sm" />
+          </div>
         </div>
 
         {/* 左端手柄：入点 (In Handle) */}
         <div
           onMouseDown={(e) => startDrag('in', e)}
           className={cn(
-            'absolute top-0 bottom-0 w-5 -ml-2.5 flex items-center justify-center rounded-l-md bg-primary text-primary-foreground shadow-md cursor-ew-resize hover:bg-primary/90 transition-transform active:scale-105 z-30 select-none',
+            'absolute top-0 bottom-0 w-6 -ml-3 flex items-center justify-center rounded-l-md bg-primary text-primary-foreground shadow-md cursor-ew-resize hover:bg-primary/90 transition-transform active:scale-105 z-30 select-none border border-primary-foreground/20',
             activeHandle === 'in' && 'ring-2 ring-primary ring-offset-1 scale-105',
           )}
           style={{ left: `${leftPercent}%` }}
-          title="按住向左/向右拖动调整裁剪起点 (入点)"
+          title={t('videoTrimmer.dragInHandle')}
         >
           <span className="font-mono text-xs font-bold leading-none select-none pointer-events-none">
             [
@@ -227,11 +248,11 @@ export default function TimelineTrimmerBar({
         <div
           onMouseDown={(e) => startDrag('out', e)}
           className={cn(
-            'absolute top-0 bottom-0 w-5 -ml-2.5 flex items-center justify-center rounded-r-md bg-primary text-primary-foreground shadow-md cursor-ew-resize hover:bg-primary/90 transition-transform active:scale-105 z-30 select-none',
+            'absolute top-0 bottom-0 w-6 -ml-3 flex items-center justify-center rounded-r-md bg-primary text-primary-foreground shadow-md cursor-ew-resize hover:bg-primary/90 transition-transform active:scale-105 z-30 select-none border border-primary-foreground/20',
             activeHandle === 'out' && 'ring-2 ring-primary ring-offset-1 scale-105',
           )}
           style={{ left: `${rightPercent}%` }}
-          title="按住向左/向右拖动调整裁剪终点 (出点)"
+          title={t('videoTrimmer.dragOutHandle')}
         >
           <span className="font-mono text-xs font-bold leading-none select-none pointer-events-none">
             ]

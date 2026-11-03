@@ -20,6 +20,7 @@ import {
 } from '../../types/qualityReview';
 import { validCueRange } from '../lib/waveformEditing';
 import { qualityCheckSteps } from '../lib/qualityChecks';
+import { joinSubtitleContent } from '../lib/proofreadUtils';
 import {
   buildPreviewTrackSpecs,
   type PreviewTrackSpec,
@@ -349,6 +350,7 @@ export const useStandaloneSubtitles = (
           srcLang: spec.srcLang,
           label: spec.label,
           default: spec.default,
+          role: spec.role,
         });
       }
     } catch (error) {
@@ -1220,14 +1222,12 @@ export const useStandaloneSubtitles = (
       flushPendingEdit();
 
       // 合并内容
-      const mergedContent = toMerge
-        .map((s) => s.sourceContent)
-        .filter(Boolean)
-        .join('\n');
-      const mergedTarget = toMerge
-        .map((s) => s.targetContent)
-        .filter(Boolean)
-        .join('\n');
+      const mergedContent = joinSubtitleContent(
+        toMerge.map((s) => s.sourceContent),
+      );
+      const mergedTarget = joinSubtitleContent(
+        toMerge.map((s) => s.targetContent),
+      );
 
       // 使用第一条的开始时间和最后一条的结束时间
       const startTime = toMerge[0].startTimeInSeconds || 0;

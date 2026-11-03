@@ -1,4 +1,3 @@
-import { cleanTaskStorage } from './taskRuns/storageRuntime';
 import { dialogWindow } from '../automation/events';
 import { ipcMain } from '../automation/handlers';
 import { app, BrowserWindow, dialog, shell } from 'electron';
@@ -729,7 +728,11 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     'downloadTtsModel',
     async (
       _event,
-      { model, source }: { model: TtsModelId; source?: TtsModelSource },
+      {
+        model,
+        source,
+        voice,
+      }: { model: TtsModelId; source?: TtsModelSource; voice?: string },
     ) => {
       if (downloadingModels.size > 0) {
         return { success: false, error: 'anotherDownloadInProgress' };
@@ -737,6 +740,22 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
       const progressKey = getTtsProgressKey(model);
       downloadingModels.add(progressKey);
       try {
+        if (model === 'piper-vietnamese') {
+          const { getPiperModelDownloader } =
+            require('./piper/piperDownloader') as typeof import('./piper/piperDownloader');
+          const piperDownloader = getPiperModelDownloader(mainWindow);
+          const res = await piperDownloader.download(voice || 'all');
+          downloadingModels.delete(progressKey);
+          return res;
+        }
+        if (model === 'vieneu-vietnamese') {
+          const { downloadVieNeuModel } =
+            require('./vieneu/vieneuDownloader') as typeof import('./vieneu/vieneuDownloader');
+          const abortController = new AbortController();
+          await downloadVieNeuModel(mainWindow, abortController.signal);
+          downloadingModels.delete(progressKey);
+          return { success: true };
+        }
         await ttsModelDownloader.download(model, source);
         downloadingModels.delete(progressKey);
         return { success: true };
@@ -748,25 +767,38 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     },
   );
 
-  ipcMain.handle('getTtsModelStatus', async () => ({
-    success: true,
-    engineInstalled: isSherpaLibInstalled(),
-    models: (Object.keys(TTS_MODELS) as TtsModelId[]).map((id) => {
-      const spec = TTS_MODELS[id];
-      return {
-        id,
-        installed: isTtsModelInstalled(id),
-        displayName: spec.displayName,
-        languages: spec.languages,
-        approxInstallBytes: spec.approxInstallBytes,
-        sampleRate: spec.sampleRate,
-        defaultVoiceId: spec.defaultVoiceId,
-        voices: spec.voices,
-        // 克隆模型：voice 池 = 我的音色，渲染层据此改从 voiceClone:list 取。
-        cloneOnly: spec.cloneOnly ?? false,
-      };
-    }),
-  }));
+  ipcMain.handle('getTtsModelStatus', async () => {
+    const { isPiperEngineInstalled, getInstalledPiperVoices } =
+      require('./piper/piperManager') as typeof import('./piper/piperManager');
+    const piperInstalledVoices = getInstalledPiperVoices().map((v) => v.id);
+
+    return {
+      success: true,
+      engineInstalled: isSherpaLibInstalled(),
+      models: (Object.keys(TTS_MODELS) as TtsModelId[]).map((id) => {
+        const spec = TTS_MODELS[id];
+        const isPiper = id === 'piper-vietnamese';
+        const isVieNeu = id === 'vieneu-vietnamese';
+        return {
+          id,
+          installed: isTtsModelInstalled(id),
+          engineInstalled: isPiper
+            ? isPiperEngineInstalled()
+            : isVieNeu
+              ? true
+              : isSherpaLibInstalled(),
+          displayName: spec.displayName,
+          languages: spec.languages,
+          approxInstallBytes: spec.approxInstallBytes,
+          sampleRate: spec.sampleRate,
+          defaultVoiceId: spec.defaultVoiceId,
+          voices: spec.voices,
+          installedVoices: isPiper ? piperInstalledVoices : undefined,
+          cloneOnly: spec.cloneOnly ?? false,
+        };
+      }),
+    };
+  });
 
   ipcMain.handle('deleteTtsModel', async (_event, modelId: TtsModelId) => {
     try {
@@ -899,6 +931,13 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
       qwenModelDownloader.cancel();
       fireRedModelDownloader.cancel();
       ttsModelDownloader.cancel();
+      try {
+        const { getPiperModelDownloader } =
+          require('./piper/piperDownloader') as typeof import('./piper/piperDownloader');
+        getPiperModelDownloader().cancel();
+      } catch {
+        /* ignore */
+      }
       speakerDiarizationModelDownloader.cancel();
       // Parakeet 等待当前会话真正退出并完成 finally 清理，避免取消后立即重试时
       // 旧任务清掉新任务的进度键/互斥状态。
@@ -1101,9 +1140,6 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
   // 清除缓存
   ipcMain.handle('clearCache', async () => {
     try {
-      const taskCleanup = await cleanTaskStorage();
-      if (taskCleanup.errors.length)
-        throw new Error(taskCleanup.errors.join('; '));
       const tempDir = getTempDir();
       const files = await fse.readdir(tempDir);
 

@@ -3,7 +3,7 @@ import { store } from './store';
 import { getTranscriptionBusyCount } from './taskProcessor';
 import { decideCloseIntent, type CloseAction } from './windowCloseDecision';
 
-type DialogLanguage = 'zh' | 'en';
+type DialogLanguage = 'zh' | 'en' | 'vi';
 
 /** Cmd+Q / 菜单退出 / 我们主动退出时置位：区分「关窗」与「真退出」 */
 let isQuitting = false;
@@ -12,24 +12,40 @@ let closePromptOpen = false;
 const dirtyWindows = new Set<number>();
 
 export function confirmUnsavedWindows(): boolean {
+  if (isQuitting) return true;
   return BrowserWindow.getAllWindows().every(
     (win) => !dirtyWindows.has(win.webContents.id) || confirmUnsaved(win),
   );
 }
 
 function confirmUnsaved(win: BrowserWindow): boolean {
-  const zh = resolveLanguage() === 'zh';
+  if (isQuitting) return true;
+  const lang = resolveLanguage();
+  const isZh = lang === 'zh';
+  const isVi = lang === 'vi';
   return (
     dialog.showMessageBoxSync(win, {
       type: 'warning',
-      title: zh ? '未保存的修改' : 'Unsaved changes',
-      message: zh
+      title: isZh
+        ? '未保存的修改'
+        : isVi
+        ? 'Thay đổi chưa được lưu'
+        : 'Unsaved changes',
+      message: isZh
         ? '当前工作尚未保存。确定离开吗？'
+        : isVi
+        ? 'Phiên làm việc hiện tại có dữ liệu chưa lưu. Bạn có chắc chắn muốn rời đi?'
         : 'Your work has unsaved changes. Leave anyway?',
-      detail: zh
+      detail: isZh
         ? '未保存内容已尽可能保留为恢复草稿。'
+        : isVi
+        ? 'Nội dung chưa lưu đã được giữ lại dưới dạng bản nháp phục hồi.'
         : 'Unsaved work is retained as a recovery draft when storage is available.',
-      buttons: zh ? ['离开', '继续编辑'] : ['Leave', 'Keep editing'],
+      buttons: isZh
+        ? ['离开', '继续编辑']
+        : isVi
+        ? ['Thoát', 'Tiếp tục làm việc']
+        : ['Leave', 'Keep editing'],
       defaultId: 1,
       cancelId: 1,
       noLink: true,
@@ -75,14 +91,36 @@ const LABELS: Record<DialogLanguage, Record<string, string>> = {
     quitConfirm: 'Quit',
     cancel: 'Cancel',
   },
+  vi: {
+    bgTitle: 'Ứng dụng tiếp tục chạy ngầm',
+    bgDetailBusy:
+      'Vẫn còn %d tác vụ đang xử lý ngầm. Để thoát hoàn toàn, vui lòng chọn Thoát ngay.',
+    bgDetailIdle:
+      'Ứng dụng sẽ tiếp tục chạy ngầm trong khay hệ thống.',
+    bgBackground: 'Chạy ngầm',
+    bgQuitNow: 'Thoát ngay',
+    dontShowAgain: 'Không hiển thị lại',
+    quitTitle: 'Vẫn còn tác vụ đang chạy',
+    quitDetailBusy:
+      'Hiện có %d tác vụ đang được xử lý. Thoát lúc này sẽ làm gián đoạn tiến trình. Bạn có chắc chắn muốn thoát?',
+    quitConfirm: 'Thoát ứng dụng',
+    cancel: 'Tiếp tục làm việc',
+  },
 };
 
 function resolveLanguage(): DialogLanguage {
   const settings = store.get('settings') as { language?: string } | undefined;
-  if (settings?.language === 'zh' || settings?.language === 'en') {
+  if (
+    settings?.language === 'zh' ||
+    settings?.language === 'en' ||
+    settings?.language === 'vi'
+  ) {
     return settings.language;
   }
-  return app.getLocale().toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const loc = app.getLocale().toLowerCase();
+  if (loc.startsWith('zh')) return 'zh';
+  if (loc.startsWith('vi')) return 'vi';
+  return 'vi'; // Mặc định tiếng Việt
 }
 
 function resolveCloseAction(): CloseAction {
@@ -179,10 +217,43 @@ export function setupWindowCloseBehavior(mainWindow: BrowserWindow): void {
   mainWindow.webContents.on('will-prevent-unload', (event) => {
     if (confirmUnsaved(mainWindow)) event.preventDefault();
   });
+
+  // Renderer trigger confirm exit
+  ipcMain.on('app:confirm-window-close', () => {
+    isQuitting = true;
+    dirtyWindows.clear();
+    app.quit();
+  });
+
+  // Renderer trigger minimize to background
+  ipcMain.on('app:minimize-to-background', () => {
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.hide();
+    }
+  });
+
   mainWindow.on('close', (e) => {
     if (isQuitting) return; // 真退出进行中：放行
     e.preventDefault();
-    void handleWindowClose(mainWindow);
+
+    // Gửi event để renderer hiển thị Modal React giao diện đẹp mắt
+    if (
+      !mainWindow.isDestroyed() &&
+      mainWindow.webContents &&
+      !mainWindow.webContents.isCrashed()
+    ) {
+      const count = getTranscriptionBusyCount();
+      const isDirty = dirtyWindows.has(mainWindow.webContents.id);
+      mainWindow.webContents.send('app:request-window-close', {
+        busyCount: count,
+        isDirty,
+        canBackground:
+          process.platform === 'darwin' ||
+          resolveCloseAction() === 'background',
+      });
+    } else {
+      void handleWindowClose(mainWindow);
+    }
   });
 
   // macOS：点击 Dock 图标恢复窗口

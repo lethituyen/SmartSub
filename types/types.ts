@@ -7,7 +7,14 @@ import type {
   DubbingOverflowMode,
   DubbingOverlapMode,
 } from './dubbing';
-import type { EncoderMode, SubtitleStyle, VideoQuality } from './subtitleMerge';
+import type {
+  AntiDuplicateConfig,
+  BlurSubtitleConfig,
+  EncoderMode,
+  SubtitleStyle,
+  VideoQuality,
+  WatermarkConfig,
+} from './subtitleMerge';
 import type {
   SubtitleOutputFiles,
   SubtitleOutputFormat,
@@ -88,9 +95,6 @@ export interface ManuscriptMatchSummary {
 }
 
 export interface IFiles extends SubtitleOutputFiles {
-  taskRunId?: string;
-  taskRunRevision?: number;
-  stageRuns?: import('./taskRun').FileRun['stages'];
   /** Runtime event routing; file UUIDs can be reused by restored drafts. */
   taskProjectId?: string;
   taskActivity?: TaskActivity;
@@ -219,9 +223,6 @@ export type TaskProjectType =
 
 /** 一次任务工程：任务维度记录，下挂文件列表 */
 export interface TaskProject {
-  currentRunId?: string;
-  runStatus?: import('./taskRun').RunStatus;
-  runRevision?: number;
   id: string;
   /** 默认「时间 + 第一个文件名」，用户可改 */
   name: string;
@@ -264,6 +265,12 @@ export interface PipelineComposeConfig {
   videoQuality?: VideoQuality;
   /** 烧录编码方式（缺省回退全局合成偏好；运行期硬件不可用自动回落 CPU） */
   encoderMode?: EncoderMode;
+  /** 视频去重 / 防查重深度重塑配置 */
+  antiDuplicate?: AntiDuplicateConfig;
+  /** 抹除/模糊原视频硬字幕配置 */
+  blurOldSubtitles?: BlurSubtitleConfig;
+  /** 视频水印/Logo 配置 */
+  watermark?: WatermarkConfig;
 }
 
 /** 人工检查点档位 */

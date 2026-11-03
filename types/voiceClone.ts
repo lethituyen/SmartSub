@@ -4,10 +4,10 @@
  * 纯类型/常量（不依赖 electron / fs），main、renderer、test:dubbing 均可直接引入。
  */
 
-/** 克隆引擎：本地 zipvoice 零样本 / 火山复刻 2.0 云端训练 / ElevenLabs 即时克隆。 */
-export type VoiceCloneEngine = 'zipvoice' | 'volcengine' | 'elevenlabs';
+/** 克隆引擎：本地 zipvoice 零样本 / 火山复刻 2.0 云端训练 / ElevenLabs 即时克隆 / 本地 VieNeu Tiếng Việt. */
+export type VoiceCloneEngine = 'zipvoice' | 'volcengine' | 'elevenlabs' | 'vieneu';
 
-/** 云端训练状态（zipvoice 即建即用，无此状态）。 */
+/** 云端训练状态（zipvoice / vieneu 即建即用，无此状态）。 */
 export type VoiceCloneTrainStatus = 'training' | 'ready' | 'failed';
 
 /** 用户创建的克隆音色实体（store 键 `clonedVoices`）。 */
@@ -16,8 +16,8 @@ export interface ClonedVoice {
   id: string;
   name: string;
   engine: VoiceCloneEngine;
-  /** 参考音频语言（zipvoice 双语模型支持 zh/en；火山按训练语种）。 */
-  language: 'zh' | 'en';
+  /** 参考音频语言（zipvoice 双语支持 zh/en；vieneu 支持 vi；火山/EL 按训练语种）。 */
+  language: 'zh' | 'en' | 'vi';
   /** zipvoice：处理后参考音频（userData/voiceClones/<id>/ref.wav）。 */
   refWavPath?: string;
   /** zipvoice：参考音频的精确转写文本（与音频不匹配会明显劣化）。 */
@@ -124,6 +124,12 @@ export const CLONE_TARGET_RANGES: Record<VoiceCloneEngine, CloneTargetRange> = {
     idealMaxMs: 8000,
     maxMs: 10000,
   },
+  vieneu: {
+    minSpeechMs: 2000,
+    idealMinMs: 3000,
+    idealMaxMs: 8000,
+    maxMs: 15000,
+  },
   volcengine: {
     minSpeechMs: 5000,
     idealMinMs: 10000,
@@ -138,10 +144,16 @@ export const CLONE_TARGET_RANGES: Record<VoiceCloneEngine, CloneTargetRange> = {
   },
 };
 
+const VIETNAMESE_DIACRITICS_REGEX =
+  /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
+
 /**
- * 文本主导语言粗判（CJK 字符占比）：向导语言自动回填 / 音色语言落库用。
+ * 文本主导语言粗判（CJK / Vietnamese / Latin）：向导语言自动回填 / 音色语言落库用。
  */
-export function dominantTextLanguage(text: string): 'zh' | 'en' {
+export function dominantTextLanguage(text: string): 'zh' | 'en' | 'vi' {
+  if (VIETNAMESE_DIACRITICS_REGEX.test(text)) {
+    return 'vi';
+  }
   let cjk = 0;
   let latin = 0;
   for (const ch of text) {
@@ -265,7 +277,7 @@ export interface SvoicePackage {
   voice: {
     name: string;
     engine: VoiceCloneEngine;
-    language: 'zh' | 'en';
+    language: 'zh' | 'en' | 'vi';
     refText?: string;
     /** 火山：同账号跨设备可复用的槽位 id。 */
     speakerId?: string;
@@ -322,18 +334,22 @@ export function parseSvoicePackage(payload: unknown): SvoiceParseResult {
   if (
     v.engine !== 'zipvoice' &&
     v.engine !== 'volcengine' &&
-    v.engine !== 'elevenlabs'
+    v.engine !== 'elevenlabs' &&
+    v.engine !== 'vieneu'
   ) {
     return { ok: false, error: 'engine' };
   }
-  if (v.language !== 'zh' && v.language !== 'en') {
+  if (v.language !== 'zh' && v.language !== 'en' && v.language !== 'vi') {
     return { ok: false, error: 'language' };
   }
   if (v.engine === 'zipvoice' && (!p.refWavBase64 || !v.refText?.trim())) {
     return { ok: false, error: 'reference' };
   }
+  if (v.engine === 'vieneu' && !p.refWavBase64) {
+    return { ok: false, error: 'reference' };
+  }
   // 云端克隆（火山/EL）：音色即云端资产，speakerId/voice_id 必备。
-  if (v.engine !== 'zipvoice' && !v.speakerId?.trim()) {
+  if (v.engine !== 'zipvoice' && v.engine !== 'vieneu' && !v.speakerId?.trim()) {
     return { ok: false, error: 'speakerId' };
   }
   return { ok: true, pkg: p };

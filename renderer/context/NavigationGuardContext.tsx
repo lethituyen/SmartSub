@@ -124,21 +124,27 @@ export function NavigationGuardProvider({
     guardsRef.current.forEach((guard) => {
       if (guard.isDirty) count += 1;
     });
-    setDirtyCount(count);
+    setDirtyCount((prev) => (prev === count ? prev : count));
   }, []);
 
   const registerGuard = useCallback(
     (id: string, options: NavigationGuardOptions) => {
+      const prev = guardsRef.current.get(id);
       guardsRef.current.set(id, options);
-      updateDirtyCount();
+      if (!prev || prev.isDirty !== options.isDirty) {
+        updateDirtyCount();
+      }
     },
     [updateDirtyCount],
   );
 
   const unregisterGuard = useCallback(
     (id: string) => {
+      const prev = guardsRef.current.get(id);
       guardsRef.current.delete(id);
-      updateDirtyCount();
+      if (prev?.isDirty) {
+        updateDirtyCount();
+      }
     },
     [updateDirtyCount],
   );
@@ -466,12 +472,8 @@ export function useNavigationGuard(
     registerGuard(id, options);
   }, [
     registerGuard,
-    unregisterGuard,
     id,
     options.isDirty,
-    options.getIsDirty,
-    options.onSave,
-    options.onDiscard,
     options.title,
     options.description,
   ]);

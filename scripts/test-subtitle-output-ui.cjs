@@ -225,8 +225,9 @@ try {
 
   // 工具栏按流水线阶段排列：听（语音模型、视频语言、场景、断句与精修）｜
   // 译（翻译成、翻译服务、词库、生成摘要）｜ 出（输出）。各任务类型只显示与自己
-  // 相关的控件，相对顺序不变。紧凑工具栏共用可换行的 fieldset，宽度不足时
-  // 自然换行，不再依赖阶段首项的左边框来分隔（换行后会落在错误位置）。
+  // 相关的控件，相对顺序不变；阶段分隔线是阶段首项上的左边框，不是额外元素，
+  // 而且只出现在「前面确实有另一个阶段」的地方（纯翻译任务没有「听」，
+  // 源语言与翻译成是同一对，之间不画线）。
   const toolbarOrder = {
     generateAndTranslate: [
       'configBar.model',
@@ -254,6 +255,11 @@ try {
       'configBar.generateSummary',
       'configBar.output',
     ],
+  };
+  const stageStarts = {
+    generateAndTranslate: ['configBar.targetLanguage', 'configBar.output'],
+    generateOnly: ['configBar.output'],
+    translateOnly: ['configBar.output'],
   };
   for (const typeDef of TASK_TYPES) {
     const html = renderToStaticMarkup(
@@ -283,10 +289,15 @@ try {
       toolbarOrder[typeDef.taskType],
       `${typeDef.taskType}: the toolbar runs 听 → 译 → 出`,
     );
-    assert.match(
-      html,
-      /<fieldset[^>]*class="[^"]*\bflex-wrap\b/,
-      `${typeDef.taskType}: compact controls can wrap without clipping`,
+    const dividedItems = [
+      ...html.matchAll(
+        /<div class="[^"]*\bborder-l\b[^"]*"><div class="flex min-w-0 items-center gap-1"><span title="([^"]+)"/g,
+      ),
+    ].map((match) => match[1]);
+    assert.deepEqual(
+      dividedItems,
+      stageStarts[typeDef.taskType],
+      `${typeDef.taskType}: only the first item of a stage that follows another stage carries the divider`,
     );
     assert.ok(
       !html.includes('title="configBar.format"') &&
@@ -295,7 +306,7 @@ try {
     );
   }
   console.log(
-    'Toolbar order: 听 → 译 → 出 for all 3 task types in a wrapping compact toolbar',
+    'Toolbar order: 听 → 译 → 出 for all 3 task types, stage dividers only between stages',
   );
 } finally {
   Module._load = originalLoad;

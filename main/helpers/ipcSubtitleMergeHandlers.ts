@@ -73,6 +73,9 @@ function mergeConfigToComposeConfig(
             style: config.style,
             videoQuality: config.videoQuality,
             encoderMode: config.encoderMode,
+            blurOldSubtitles: config.blurOldSubtitles,
+            watermark: config.watermark,
+            antiDuplicate: config.antiDuplicate,
           },
     audio: config.audioTrack
       ? {

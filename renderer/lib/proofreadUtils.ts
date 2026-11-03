@@ -497,3 +497,29 @@ export function pendingFileToSaveFormat(file: PendingFile): {
     status: itemStatus,
   };
 }
+
+/**
+ * 智能合并字幕文本：
+ * - 过滤空行，保持自然衔接；
+ * - 原文若已含显式换行则保留换行；
+ * - CJK 中日韩字符衔接时不插入空格；
+ * - 越南语、英语等拉丁字母/词汇衔接时自动插入空格分隔，防止单词粘连。
+ */
+export function joinSubtitleContent(parts: (string | undefined)[]): string {
+  const trimmed = parts.map((p) => (p || '').trim()).filter(Boolean);
+  if (trimmed.length === 0) return '';
+  return trimmed.reduce((acc, curr) => {
+    if (!acc) return curr;
+    if (acc.endsWith('\n') || curr.startsWith('\n')) {
+      return `${acc}\n${curr}`;
+    }
+    const lastChar = acc.slice(-1);
+    const firstChar = curr.slice(0, 1);
+    const isCjk = (ch: string) =>
+      /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/.test(ch);
+    if (isCjk(lastChar) && isCjk(firstChar)) {
+      return acc + curr;
+    }
+    return `${acc} ${curr}`;
+  }, '');
+}

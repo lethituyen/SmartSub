@@ -11,7 +11,7 @@ import { ttsBaseLanguage } from '../../../types/ttsLanguage';
 
 interface VoiceLanguageProfile {
   id: string;
-  lang: 'zh' | 'en';
+  lang: 'zh' | 'en' | 'vi';
 }
 
 interface VoiceAwareModelSpec {

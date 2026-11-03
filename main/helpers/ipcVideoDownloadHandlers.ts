@@ -25,19 +25,19 @@ import { ytDlpAdapter } from './videoDownload/ytDlpAdapter';
 import { luxAdapter } from './videoDownload/luxAdapter';
 import { withCookieFile } from './videoDownload/engineAdapter';
 import {
+  isDouyinUrl,
+  resolveDouyinMedia,
+} from './videoDownload/douyinCdpResolver';
+import {
   deleteCookieProfile,
-  clearCookieProfiles,
   listCookieProfiles,
 } from './videoDownload/cookieProfileStore';
 import {
   importCookiesFromBrowser,
   importCookiesFromFile,
   importCookiesFromPaste,
-  importAllCookiesFromBrowser,
-  importAllCookiesFromFile,
   type SupportedBrowser,
 } from './videoDownload/cookieImport';
-import { listBrowserCookieProfiles } from './videoDownload/browserCookieSource';
 import { isDownloadableHttpUrl, routeEngines } from '../../types/download';
 import type {
   DownloadEngineChoice,
@@ -79,6 +79,32 @@ async function preflightOne(
       error: 'No downloader engine installed',
     };
   }
+  if (isDouyinUrl(url)) {
+    try {
+      const media = await resolveDouyinMedia(url);
+      const heights = Array.from(
+        new Set(media.streams.map((s) => s.height).filter((h) => h > 0)),
+      ).sort((a, b) => b - a);
+
+      return {
+        url,
+        ok: true,
+        engine: 'yt-dlp',
+        meta: {
+          title: media.title,
+          duration: media.duration,
+          thumbnail: media.thumbnail,
+          heights: heights.length ? heights : [1080, 720, 540],
+        },
+      };
+    } catch (error) {
+      logMessage(
+        `Douyin CDP preflight fallback to standard engine: ${error}`,
+        'warning',
+      );
+    }
+  }
+
   // cookie 临时副本按 url 匹配档案生成，供本 url 的所有引擎预检尝试共用
   return withCookieFile(url, async (cookieFilePath) => {
     const errors: string[] = [];
@@ -349,42 +375,6 @@ export function setupVideoDownloadHandlers(mainWindow: BrowserWindow): void {
   });
 
   ipcMain.handle(
-    'videoDownload:cookieProfiles:browserProfiles',
-    (_event, payload: { browser: SupportedBrowser }) =>
-      listBrowserCookieProfiles(payload.browser),
-  );
-
-  ipcMain.handle(
-    'videoDownload:cookieProfiles:importAllFromBrowser',
-    (_event, payload: { browser: SupportedBrowser; browserProfile?: string }) =>
-      importAllCookiesFromBrowser({
-        browser: payload.browser,
-        browserProfile: payload.browserProfile,
-      }),
-  );
-
-  ipcMain.handle(
-    'videoDownload:cookieProfiles:importAllFile',
-    async (_event, payload?: { sourcePath?: string }) => {
-      const picked = payload?.sourcePath
-        ? { canceled: false, filePaths: [payload.sourcePath] }
-        : await dialog.showOpenDialog(dialogWindow(mainWindow), {
-            title: 'Select cookies.txt',
-            properties: ['openFile'],
-            filters: [
-              { name: 'Cookies', extensions: ['txt'] },
-              { name: 'All Files', extensions: ['*'] },
-            ],
-          });
-      if (picked.canceled || !picked.filePaths[0]) return { cancelled: true };
-      return {
-        cancelled: false,
-        ...importAllCookiesFromFile({ filePath: picked.filePaths[0] }),
-      };
-    },
-  );
-
-  ipcMain.handle(
     'videoDownload:cookieProfiles:importFile',
     async (
       _event,
@@ -436,14 +426,12 @@ export function setupVideoDownloadHandlers(mainWindow: BrowserWindow): void {
       payload: {
         id: string;
         browser: SupportedBrowser;
-        browserProfile?: string;
         customDef?: CustomDefPayload;
       },
     ) =>
       importCookiesFromBrowser({
         id: payload.id,
         browser: payload.browser,
-        browserProfile: payload.browserProfile,
         customDef: payload.customDef,
       }),
   );
@@ -452,9 +440,4 @@ export function setupVideoDownloadHandlers(mainWindow: BrowserWindow): void {
     'videoDownload:cookieProfiles:delete',
     (_event, payload: { id: string }) => deleteCookieProfile(payload.id),
   );
-
-  ipcMain.handle('videoDownload:cookieProfiles:clearAll', () => {
-    clearCookieProfiles();
-    return true;
-  });
 }

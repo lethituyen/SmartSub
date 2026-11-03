@@ -49,6 +49,18 @@ import {
   cancelVideoToGif,
   cancelAllGifProcesses,
 } from './videoToGif';
+import {
+  executeVideoOcrSubtitles,
+  cancelVideoOcrSubtitles,
+  cancelAllOcrProcesses,
+  probeVideoOcrPreview,
+  areOcrModelsReady,
+} from './videoOcrSubtitles';
+import {
+  executeVideoRemake,
+  cancelVideoRemake,
+  cancelAllRemakeProcesses,
+} from './videoRemaker';
 import type {
   SubtitleConvertItemConfig,
   VideoTrimConfig,
@@ -59,6 +71,9 @@ import type {
   BilingualSubtitleSplitConfig,
   VideoCompressConfig,
   VideoToGifConfig,
+  VideoOcrSubtitlesConfig,
+  VideoOcrRoi,
+  VideoRemakeConfig,
 } from '../../../types/toolbox';
 
 export function setupToolboxHandlers(mainWindow?: BrowserWindow | null): void {
@@ -156,6 +171,25 @@ export function setupToolboxHandlers(mainWindow?: BrowserWindow | null): void {
       return false;
     } catch (err) {
       logMessage(`toolbox:openFolder error: ${err}`, 'warning');
+      return false;
+    }
+  });
+
+  // Shell 工具兼容通道
+  ipcMain.handle('shell:showItemInFolder', async (_event, filePath: string) => {
+    try {
+      if (fs.existsSync(filePath)) {
+        shell.showItemInFolder(filePath);
+        return true;
+      }
+      const parent = path.dirname(filePath);
+      if (fs.existsSync(parent)) {
+        await shell.openPath(parent);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      logMessage(`shell:showItemInFolder error: ${err}`, 'warning');
       return false;
     }
   });
@@ -422,6 +456,80 @@ export function setupToolboxHandlers(mainWindow?: BrowserWindow | null): void {
     return cancelVideoToGif(jobId);
   });
 
+  // 12. 视频硬字幕 OCR 提取 (PP-OCRv6)
+  ipcMain.handle('toolbox:videoOcrSubtitles:checkModels', async () => {
+    return areOcrModelsReady();
+  });
+
+  ipcMain.handle(
+    'toolbox:videoOcrSubtitles:previewFrame',
+    async (
+      _event,
+      payload: { videoPath: string; timeSec: number; roi?: VideoOcrRoi },
+    ) => {
+      return probeVideoOcrPreview(payload.videoPath, payload.timeSec, payload.roi);
+    },
+  );
+
+  ipcMain.handle(
+    'toolbox:videoOcrSubtitles:start',
+    async (
+      _event,
+      payload: { config: VideoOcrSubtitlesConfig; jobId: string },
+    ) => {
+      const { config, jobId } = payload;
+      return trackToolOperation(
+        'video-ocr-subtitles',
+        [config.videoPath],
+        { ...config },
+        () =>
+          executeVideoOcrSubtitles(config, (progress) => {
+            mainWindow?.webContents.send('toolbox:videoOcrProgress', {
+              jobId,
+              ...progress,
+            });
+          }),
+      );
+    },
+  );
+
+  ipcMain.handle(
+    'toolbox:videoOcrSubtitles:cancel',
+    async (_event, videoPath: string) => {
+      return cancelVideoOcrSubtitles(videoPath);
+    },
+  );
+
+  // 13. 视频去重 / 重制 (Video Remaker)
+  ipcMain.handle(
+    'toolbox:remakeVideo',
+    async (
+      _event,
+      payload: { config: VideoRemakeConfig; jobId: string },
+    ) => {
+      const { config, jobId } = payload;
+      return trackToolOperation(
+        'video-remaker',
+        [config.videoPath],
+        { ...config },
+        () =>
+          executeVideoRemake(config, jobId, (percent) => {
+            mainWindow?.webContents.send('toolbox:remakeProgress', {
+              jobId,
+              percent,
+            });
+          }),
+      );
+    },
+  );
+
+  ipcMain.handle(
+    'toolbox:cancelRemakeVideo',
+    async (_event, jobId: string) => {
+      return cancelVideoRemake(jobId);
+    },
+  );
+
   logMessage('Toolbox IPC handlers registered successfully', 'info');
 }
 
@@ -435,6 +543,8 @@ export function shutdownToolboxProcesses(): void {
     cancelAllCompressProcesses();
     cancelAllGifProcesses();
     cancelAllEmbeddedSubtitleExtractions();
+    cancelAllOcrProcesses();
+    cancelAllRemakeProcesses();
     logMessage(
       'All active toolbox processes have been shut down cleanly',
       'info',

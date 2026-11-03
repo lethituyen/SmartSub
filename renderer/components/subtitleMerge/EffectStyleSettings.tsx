@@ -14,14 +14,29 @@ import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { HelpHint } from '@/components/HelpHint';
-import { PenLine, RectangleHorizontal } from 'lucide-react';
-import type { SubtitleStyle, BorderStyle } from '../../../types/subtitleMerge';
+import { PenLine, RectangleHorizontal, Sparkles } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import type {
+  SubtitleStyle,
+  BorderStyle,
+  BlurSubtitleConfig,
+  WatermarkConfig,
+  AntiDuplicateConfig,
+} from '../../../types/subtitleMerge';
 import { OUTLINE_RANGE, SHADOW_RANGE, BACK_OPACITY_RANGE } from './constants';
 import { subtitleColorSwatch } from '../../../types/subtitleColor';
+import WatermarkSettings from './WatermarkSettings';
+import AntiDuplicateSettings from './AntiDuplicateSettings';
 
 interface EffectStyleSettingsProps {
   style: SubtitleStyle;
   onUpdateStyle: (updates: Partial<SubtitleStyle>) => void;
+  blurOldSubtitles?: BlurSubtitleConfig;
+  onUpdateBlurOldSubtitles?: (updates: Partial<BlurSubtitleConfig>) => void;
+  watermark?: WatermarkConfig;
+  onUpdateWatermark?: (updates: Partial<WatermarkConfig>) => void;
+  antiDuplicate?: AntiDuplicateConfig;
+  onUpdateAntiDuplicate?: (updates: Partial<AntiDuplicateConfig>) => void;
   disabled?: boolean;
 }
 
@@ -118,6 +133,12 @@ function SliderField({
 export default function EffectStyleSettings({
   style,
   onUpdateStyle,
+  blurOldSubtitles,
+  onUpdateBlurOldSubtitles,
+  watermark,
+  onUpdateWatermark,
+  antiDuplicate,
+  onUpdateAntiDuplicate,
   disabled = false,
 }: EffectStyleSettingsProps) {
   const { t } = useTranslation('subtitleMerge');
@@ -261,6 +282,114 @@ export default function EffectStyleSettings({
             )}
           </>
         )}
+
+        {/* Làm mờ phụ đề gốc */}
+        <div className="pt-3 border-t space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="blur-old-subtitles-switch" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                {t('blurOldSubtitles')}
+              </Label>
+              <HelpHint text={t('blurOldSubtitlesHint')} />
+            </div>
+            <Switch
+              id="blur-old-subtitles-switch"
+              checked={blurOldSubtitles?.enabled ?? false}
+              onCheckedChange={(checked) =>
+                onUpdateBlurOldSubtitles?.({ enabled: checked })
+              }
+              disabled={disabled}
+            />
+          </div>
+
+          {blurOldSubtitles?.enabled && (
+            <div className="mt-2 p-3 bg-muted/40 rounded-lg space-y-3 border border-border/60">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{t('blurMode')}</span>
+                <div className="flex items-center gap-1 bg-background/80 p-0.5 rounded border border-border/40">
+                  <button
+                    type="button"
+                    onClick={() => onUpdateBlurOldSubtitles?.({ mode: 'auto' })}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      blurOldSubtitles?.mode !== 'manual'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'hover:bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {t('blurModeAuto')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateBlurOldSubtitles?.({ mode: 'manual' })}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      blurOldSubtitles?.mode === 'manual'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'hover:bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {t('blurModeCustom')}
+                  </button>
+                </div>
+              </div>
+
+              {blurOldSubtitles?.mode === 'manual' ? (
+                <div className="space-y-3 pt-1">
+                  <SliderField
+                    label={t('blurStrength')}
+                    hint={t('blurStrengthHint')}
+                    value={blurOldSubtitles.blurStrength ?? 10}
+                    min={4}
+                    max={30}
+                    step={1}
+                    onChange={(v) => onUpdateBlurOldSubtitles?.({ blurStrength: v })}
+                    disabled={disabled}
+                  />
+                  <SliderField
+                    label={t('blurPositionY')}
+                    hint={t('blurPositionYHint')}
+                    displayValue={`${blurOldSubtitles.yPercent ?? 75}%`}
+                    value={blurOldSubtitles.yPercent ?? 75}
+                    min={50}
+                    max={95}
+                    step={0.5}
+                    onChange={(v) => onUpdateBlurOldSubtitles?.({ yPercent: v })}
+                    disabled={disabled}
+                  />
+                  <SliderField
+                    label={t('blurHeight')}
+                    hint={t('blurHeightHint')}
+                    displayValue={`${blurOldSubtitles.heightPercent ?? 12}%`}
+                    value={blurOldSubtitles.heightPercent ?? 12}
+                    min={5}
+                    max={25}
+                    step={0.5}
+                    onChange={(v) => onUpdateBlurOldSubtitles?.({ heightPercent: v })}
+                    disabled={disabled}
+                  />
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground bg-background/60 p-2.5 rounded border border-border/40 leading-relaxed">
+                  {t('blurModeAutoDesc')}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 视频水印 / Logo 叠层设置 */}
+        <WatermarkSettings
+          watermark={watermark}
+          onUpdateWatermark={onUpdateWatermark}
+          disabled={disabled}
+        />
+
+        {/* 视频去重 / 防查重 (Anti-Duplicate) 深度重塑设置 */}
+        <AntiDuplicateSettings
+          antiDuplicate={antiDuplicate}
+          onUpdateAntiDuplicate={onUpdateAntiDuplicate}
+          disabled={disabled}
+        />
       </div>
     </TooltipProvider>
   );

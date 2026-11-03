@@ -139,14 +139,14 @@ export default function BilingualSubtitlePanel() {
                 className="text-xs"
                 disabled={isProcessing}
               >
-                两份单语字幕合并为双语
+                {t('bilingualSubtitles.actionMerge')}
               </TabsTrigger>
               <TabsTrigger
                 value="split"
                 className="text-xs"
                 disabled={isProcessing}
               >
-                一份双语字幕拆分为单语
+                {t('bilingualSubtitles.actionSplit')}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -156,7 +156,7 @@ export default function BilingualSubtitlePanel() {
               {/* 主字幕 */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-foreground">
-                  主字幕 (上层 / 原语言)
+                  {t('bilingualSubtitles.primaryFile')}
                 </Label>
                 <div
                   role="button"
@@ -188,11 +188,11 @@ export default function BilingualSubtitlePanel() {
                     <span className="text-xs truncate font-medium text-foreground">
                       {mergeState.items.length
                         ? t('queue.files', { count: mergeState.items.length })
-                        : '点击或拖拽主字幕文件 (.srt / .vtt / .ass)'}
+                        : t('bilingualSubtitles.primaryFileTip')}
                     </span>
                   </div>
                   <Button variant="ghost" size="sm" className="h-7 text-xs">
-                    浏览
+                    {t('browse')}
                   </Button>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export default function BilingualSubtitlePanel() {
               {/* 次字幕 */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-foreground">
-                  次字幕 (下层 / 译文)
+                  {t('bilingualSubtitles.secondaryFile')}
                 </Label>
                 <div
                   role="button"
@@ -232,11 +232,11 @@ export default function BilingualSubtitlePanel() {
                     <span className="text-xs truncate font-medium text-foreground">
                       {secondaryPaths.length
                         ? t('queue.files', { count: secondaryPaths.length })
-                        : '点击或拖拽次字幕文件 (.srt / .vtt / .ass)'}
+                        : t('bilingualSubtitles.secondaryFileTip')}
                     </span>
                   </div>
                   <Button variant="ghost" size="sm" className="h-7 text-xs">
-                    浏览
+                    {t('browse')}
                   </Button>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function BilingualSubtitlePanel() {
               <div className="space-y-1.5 pt-2">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <ArrowUpDown className="h-3.5 w-3.5" />
-                  双语字幕上下层排布
+                  {t('bilingualSubtitles.layout')}
                 </Label>
                 <Select
                   value={position}
@@ -257,10 +257,10 @@ export default function BilingualSubtitlePanel() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="top">
-                      主语言在上方，次语言在下方 (推荐)
+                      {t('bilingualSubtitles.posTop')}
                     </SelectItem>
                     <SelectItem value="bottom">
-                      次语言在上方，主语言在下方
+                      {t('bilingualSubtitles.posBottom')}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -268,7 +268,9 @@ export default function BilingualSubtitlePanel() {
             </div>
           ) : (
             <div className="space-y-4">
-              <Label className="text-xs text-foreground">双语字幕源文件</Label>
+              <Label className="text-xs text-foreground">
+                {t('bilingualSubtitles.splitFileLabel')}
+              </Label>
               <div
                 role="button"
                 tabIndex={0}
@@ -300,10 +302,10 @@ export default function BilingualSubtitlePanel() {
                 <p className="mt-2 text-xs font-medium text-foreground">
                   {splitState.items.length
                     ? t('queue.files', { count: splitState.items.length })
-                    : '点击或拖拽包含两行文字的双语字幕文件'}
+                    : t('bilingualSubtitles.splitFileTip')}
                 </p>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  自动将每条字幕中的两行文本拆解为 Part 1 与 Part 2 独立文件
+                  {t('bilingualSubtitles.splitFileDesc')}
                 </p>
               </div>
             </div>
@@ -367,7 +369,7 @@ export default function BilingualSubtitlePanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              导出设置
+              {t('exportSettings')}
             </h3>
 
             <div className="space-y-1.5">
@@ -427,12 +429,12 @@ export default function BilingualSubtitlePanel() {
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  处理中...
+                  {t('bilingualSubtitles.processing')}
                 </>
               ) : action === 'merge' ? (
-                '合并为双语字幕'
+                t('bilingualSubtitles.startMerge')
               ) : (
-                '拆分为两份单语'
+                t('bilingualSubtitles.startSplit')
               )}
             </Button>
           </div>
