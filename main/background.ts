@@ -1,6 +1,13 @@
 // 必须是第一个 import：放大 libuv 线程池（首个异步 I/O 后定型，不可再改）
 import './helpers/uvThreadPool';
+import './helpers/stdio';
 import { backgroundOnly } from './automation/bootstrap';
+import {
+  recoverTaskStorageMigration,
+  setupTaskStorageHandlers,
+  cleanTaskStorage,
+  taskRunMigration,
+} from './helpers/taskRuns/storageRuntime';
 import { createWindowPort } from './automation/events';
 import { startAutomationServer } from './automation/server';
 import { AutomationService } from './automation/service';
@@ -24,6 +31,10 @@ import { setupSystemInfoManager } from './helpers/systemInfoManager';
 import { setupStoreHandlers, store, logMessage } from './helpers/storeManager';
 import { setupTaskManager } from './helpers/taskManager';
 import {
+  initializeTaskRuns,
+  flushTaskRunProgress,
+} from './helpers/taskRuns/runtime';
+import {
   initializeWorkItemStore,
   flushWorkItemStore,
 } from './helpers/workItemStore';
@@ -41,8 +52,10 @@ import { setupAppMenu } from './helpers/menu';
 import {
   setupWindowCloseBehavior,
   markQuitting,
+  getIsQuitting,
   confirmUnsavedWindows,
 } from './helpers/windowClose';
+import { setupRendererRecovery } from './helpers/rendererRecovery';
 import { setupParameterHandlers } from './helpers/ipcParameterHandlers';
 import { setupProofreadHandlers } from './helpers/ipcProofreadHandlers';
 import { setupSubtitleMergeHandlers } from './helpers/ipcSubtitleMergeHandlers';
@@ -120,6 +133,7 @@ if (isProd) {
   serve({ directory: 'app' });
 }
 
+let initializing = true;
 let showDesktop: (() => Promise<void>) | undefined;
 let desktopRequested = !backgroundOnly;
 app.on('second-instance', (_event, _argv, _cwd, data: any) => {
@@ -136,6 +150,7 @@ app.on('before-quit', (event) => {
     return;
   }
   try {
+    flushTaskRunProgress();
     flushWorkItemStore();
   } catch (error) {
     event.preventDefault();
@@ -169,6 +184,19 @@ app.on('before-quit', (event) => {
 
 (async () => {
   await app.whenReady();
+  try {
+    await recoverTaskStorageMigration();
+  } catch (error) {
+    dialog.showErrorBox('Task data migration', String(error));
+    if (
+      ['committing', 'rebinding', 'cleanup'].includes(
+        taskRunMigration().journal()?.phase || '',
+      )
+    ) {
+      app.exit(1);
+      return; // incomplete publication must recover before editors open
+    }
+  }
 
   // CUDA reads CUDA_VISIBLE_DEVICES when its runtime first initializes. Apply
   // the persisted selection before any addon/utility/Python engine can start.
@@ -252,7 +280,7 @@ app.on('before-quit', (event) => {
   }
 
   const settings = store.get('settings');
-  const userLanguage = settings?.language || 'vi'; // 默认为越南语
+  const userLanguage = settings?.language || 'zh'; // 默认为中文
 
   let desktopWindow: Electron.BrowserWindow | undefined;
   let updaterRegistered = false;
@@ -268,7 +296,7 @@ app.on('before-quit', (event) => {
     }
     if (process.platform === 'darwin') app.dock?.show();
     desktopWindow = createWindow('main', {
-      width: 1680,
+      width: 1280,
       height: 900,
       minWidth: 1024,
       minHeight: 700,
@@ -287,30 +315,20 @@ app.on('before-quit', (event) => {
 
     // 关窗行为（macOS 智能模式 / Win·Linux 防误杀）+ Dock 激活恢复
     setupWindowCloseBehavior(desktopWindow);
+    setupRendererRecovery(desktopWindow, {
+      isQuitting: getIsQuitting,
+      language: () => store.get('settings')?.language || userLanguage,
+      showMessageBox: (window, options) =>
+        dialog.showMessageBox(window, options),
+    });
     setupWindowChromeHandlers(desktopWindow);
     setupAppMenu(desktopWindow);
     if (!updaterRegistered) {
       setupAutoUpdater(mainWindow);
       updaterRegistered = true;
     }
-    if (isProd) {
-      await desktopWindow.loadURL(rendererUrl);
-    } else {
-      let loaded = false;
-      for (let attempt = 1; attempt <= 30; attempt++) {
-        try {
-          await desktopWindow.loadURL(rendererUrl);
-          loaded = true;
-          break;
-        } catch {
-          if (attempt === 30) {
-            await desktopWindow.loadURL(rendererUrl);
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-      desktopWindow.webContents.openDevTools();
-    }
+    await desktopWindow.loadURL(rendererUrl);
+    if (!isProd) desktopWindow.webContents.openDevTools();
   };
 
   // Register every renderer dependency before the first page can invoke IPC.
@@ -320,6 +338,9 @@ app.on('before-quit', (event) => {
   setupEmbeddedSubtitleHandlers();
   setupSystemInfoManager(mainWindow);
   initializeWorkItemStore();
+  initializeTaskRuns();
+  setupTaskStorageHandlers();
+  await cleanTaskStorage();
   setupWorkItemHandlers();
   setupRecipeHandlers();
   setupGlossaryHandlers(mainWindow);
@@ -346,13 +367,15 @@ app.on('before-quit', (event) => {
   // 清理三层架构改造前遗留的旧 py-engine 目录/状态文件（幂等，失败静默）。
   cleanupLegacyPyEngine();
   // 启动后每日一次的节流静默检查 faster-whisper 运行时更新（非阻塞，失败静默）。
+  initializing = false;
   void maybeAutoCheckPyEngineUpdate(mainWindow);
   // 后台预热 GPU/CUDA 环境检测缓存：首次探测（nvcc / nvidia-smi）较慢，提前异步完成并写入
   // 会话缓存，用户进入「引擎与模型」页时直接命中，避免首屏等待。非阻塞，失败静默。
-  void getGpuEnvironment().catch(() => { });
+  void getGpuEnvironment().catch(() => {});
 })();
 
 app.on('window-all-closed', () => {
+  if (initializing) return;
   // macOS 惯例：关窗不退出（任务保活），其余平台正常退出
   if (process.platform !== 'darwin') {
     if (!backgroundOnly) app.quit();

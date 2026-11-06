@@ -11,6 +11,7 @@ import { flushLogWrites, listLogFiles, readLogFileText } from './logStorage';
 import { getBuildInfo } from './buildInfo';
 import { getGpuEnvironment } from './cudaUtils';
 import { getActiveBackend } from './addonLoader';
+import { getInstalledAddons } from './addonManager';
 import {
   getCoreDumpShrink,
   getCrashDumpsDir,
@@ -155,6 +156,7 @@ function createSources(): DiagnosticsSources {
     }),
     addon: () => ({
       active: getActiveBackend(),
+      installed: getInstalledAddons(),
       lastLoadResult: store.get('lastAddonLoadResult') ?? null,
       history: store.get('addonLoadHistory') ?? [],
       ...buildCrashSnapshot(snapshotBreaker(), getPreviousRunAssessment()),
